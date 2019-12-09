@@ -2,13 +2,9 @@ package test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
-import java.util.Scanner;
 import java.util.Set;
 
 class Instruction4 {
@@ -36,16 +32,22 @@ class Instruction4 {
         }
     }
 
-    public long getValue(long[] prog, int pc, int arg, int relBase) {
+    public int getPos(long[] prog, int pc, int arg, int relBase) {
         if (mode[arg] == 0) {
-            return prog[(int) prog[pc + arg + 1]];
+            return (int) prog[pc + arg + 1];
         } else if (mode[arg] == 1) {
-            return prog[pc + arg + 1];
+            return pc + arg + 1;
         } else if (mode[arg] == 2) {
-        	return prog[(int) prog[pc + arg + 1] + relBase];
+            return (int) prog[pc + arg + 1] + relBase;
         }
         throw new RuntimeException(
-                "Unknown mode " + mode[arg] + " at pc " + pc + " arg " + arg);
+            "Unknown mode " + mode[arg] + " at pc " + pc + " arg " + arg);
+    }
+
+    public long getValue(long[] prog, int pc, int arg, int relBase) {
+        int pos = getPos(prog, pc, arg, relBase);
+        System.err.println("Reading from " + pos);
+        return prog[pos];
     }
 }
 
@@ -58,15 +60,23 @@ class IntCodeMachine4 {
     private long lastOutput = -1;
 
     private int pc;
-    
+
     private int relBase = 0;
 
     public IntCodeMachine4(long[] origProg, int size) {
         prog = new long[size];
         for (int i = 0; i < origProg.length; i++) {
-        	prog[i] = origProg[i];
+            prog[i] = origProg[i];
         }
         pc = 0;
+    }
+
+    private void printInstruction(int nArgs) {
+        System.err.print(pc + ": " + prog[pc]);
+        for (int i = 0; i < nArgs; i++) {
+            System.err.print(" " + prog[pc + i + 1]);
+        }
+        System.err.println();
     }
 
     public boolean isFinished() {
@@ -84,7 +94,8 @@ class IntCodeMachine4 {
             Instruction4 i = new Instruction4(prog[pc]);
             switch (i.op) {
                 case 1:
-                    int outsum = (int) prog[pc + 3];
+                    printInstruction(3);
+                    int outsum = i.getPos(prog, pc, 2, relBase);
                     long insum1 = i.getValue(prog, pc, 0, relBase);
                     long  insum2 = i.getValue(prog, pc, 1, relBase);
                     prog[outsum] = insum1 + insum2;
@@ -93,7 +104,8 @@ class IntCodeMachine4 {
                     break;
 
                 case 2:
-                    int outmul = (int) prog[pc + 3];
+                    printInstruction(3);
+                    int outmul = i.getPos(prog, pc, 2, relBase);
                     long inmul1 = i.getValue(prog, pc, 0, relBase);
                     long inmul2 = i.getValue(prog, pc, 1, relBase);
                     prog[outmul] = inmul1 * inmul2;
@@ -102,7 +114,8 @@ class IntCodeMachine4 {
                     break;
 
                 case 3:
-                    int strval = -1;
+                    printInstruction(1);
+                    long strval = -1;
                     if (inputIter.hasNext()) {
                         strval = inputIter.next();
                         System.err.println("Using " + strval + " as input");
@@ -111,13 +124,14 @@ class IntCodeMachine4 {
                         outOfInput = true;
                         break;
                     }
-                    int outstr = (int) prog[pc + 1];
+                    int outstr = i.getPos(prog, pc, 0, relBase);
                     prog[outstr] = strval;
                     System.err.println("pc[" + outstr + "] = " + strval);
                     pc += 2;
                     break;
 
                 case 4:
+                    printInstruction(1);
                     long ldr = i.getValue(prog, pc, 0, relBase);
                     System.err.println("Output: " + ldr);
                     lastOutput = ldr;
@@ -125,56 +139,71 @@ class IntCodeMachine4 {
                     break;
 
                 case 5:
+                    printInstruction(2);
                     long valueTrue = i.getValue(prog, pc, 0, relBase);
                     int jumpTrue = (int) i.getValue(prog, pc, 1, relBase);
                     if (valueTrue > 0) {
+                        System.err.println("Jump to " + jumpTrue + " because " + valueTrue + " > 0");
                         pc = jumpTrue;
                     } else {
+                        System.err.println("Don't Jump to " + jumpTrue + " because " + valueTrue + " <= 0");
                         pc += 3;
                     }
                     break;
 
                 case 6:
+                    printInstruction(2);
                     long valueFalse = i.getValue(prog, pc, 0, relBase);
                     int jumpFalse = (int) i.getValue(prog, pc, 1, relBase);
+                    System.err.println("Jump to " + jumpFalse + " because " + valueFalse + " == 0");
                     if (valueFalse == 0) {
                         pc = jumpFalse;
                     } else {
+                        System.err.println("Don't Jump to " + jumpFalse + " because " + valueFalse + " != 0");
                         pc += 3;
                     }
                     break;
 
                 case 7:
+                    printInstruction(3);
                     long ltv1 = i.getValue(prog, pc, 0, relBase);
                     long ltv2 = i.getValue(prog, pc, 1, relBase);
-                    int ltout = (int) prog[pc + 3];
+                    int ltout = i.getPos(prog, pc, 2, relBase);
                     if (ltv1 < ltv2) {
+                        System.err.println("prog[" + ltout + "] = 1 (" + ltv1 + " < " + ltv2 + ")");
                         prog[ltout] = 1;
                     } else {
+                        System.err.println("prog[" + ltout + "] = 0 (" + ltv1 + " >= " + ltv2 + ")");
                         prog[ltout] = 0;
                     }
                     pc += 4;
                     break;
 
                 case 8:
+                    printInstruction(3);
                     long eqv1 = i.getValue(prog, pc, 0, relBase);
                     long eqv2 = i.getValue(prog, pc, 1, relBase);
-                    int eqout = (int) prog[pc + 3];
+                    int eqout = i.getPos(prog, pc, 2, relBase);
                     if (eqv1 == eqv2) {
+                        System.err.println("prog[" + eqout + "] = 1 (" + eqv1 + " == " + eqv2 + ")");
                         prog[eqout] = 1;
                     } else {
+                        System.err.println("prog[" + eqout + "] = 0 (" + eqv1 + " != " + eqv2 + ")");
                         prog[eqout] = 0;
                     }
                     pc += 4;
                     break;
-                    
+
                 case 9:
-                	int newBase = (int) i.getValue(prog, pc, 0, relBase);
-                	relBase = newBase;
-                	pc += 2;
-                	break;
+                    printInstruction(1);
+                    int newBase = (int) i.getValue(prog, pc, 0, relBase);
+                    relBase += newBase;
+                    System.err.println("relBase += " + newBase + " = " + relBase);
+                    pc += 2;
+                    break;
 
                 case 99:
+                    printInstruction(0);
                     finished = true;
                     System.err.println("Finished!");
                     break;
@@ -233,7 +262,7 @@ public class IntCode4 {
             prog[i] = Long.parseLong(progString[i]);
         }
 
-        int[] inputs = new int[]{1};
+        int[] inputs = new int[]{2};
         IntCodeMachine4 m = new IntCodeMachine4(prog, 1000000);
         long output = m.runUntilOutOfInputOrFinished(inputs);
         System.err.println("Final result = " + output);
