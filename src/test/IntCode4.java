@@ -172,6 +172,7 @@ class IntCodeMachine4 {
                 	int newBase = i.getValue(prog, pc, 0, relBase);
                 	relBase = newBase;
                 	pc += 2;
+                	break;
 
                 case 99:
                     finished = true;
