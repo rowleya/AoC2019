@@ -14,12 +14,12 @@ import java.util.Set;
 class Instruction4 {
     private static final int ZERO = '0';
     public int op;
-    public int mode[] = new int[3];
+    public long mode[] = new long[3];
 
-    public Instruction4(int value) {
+    public Instruction4(long value) {
         String s = String.valueOf(value);
         if (s.length() == 1) {
-            op = value;
+            op = (int) value;
             for (int i = 0; i < 3; i++) {
                 mode[i] = 0;
             }
@@ -36,13 +36,13 @@ class Instruction4 {
         }
     }
 
-    public int getValue(int[] prog, int pc, int arg, int relBase) {
+    public long getValue(long[] prog, int pc, int arg, int relBase) {
         if (mode[arg] == 0) {
-            return prog[prog[pc + arg + 1]];
+            return prog[(int) prog[pc + arg + 1]];
         } else if (mode[arg] == 1) {
             return prog[pc + arg + 1];
         } else if (mode[arg] == 2) {
-        	return prog[prog[pc + arg + 1] + relBase];
+        	return prog[(int) prog[pc + arg + 1] + relBase];
         }
         throw new RuntimeException(
                 "Unknown mode " + mode[arg] + " at pc " + pc + " arg " + arg);
@@ -51,18 +51,18 @@ class Instruction4 {
 
 class IntCodeMachine4 {
 
-    private int[] prog;
+    private long[] prog;
 
     private boolean finished = false;
 
-    private int lastOutput = -1;
+    private long lastOutput = -1;
 
     private int pc;
     
     private int relBase = 0;
 
-    public IntCodeMachine4(int[] origProg, int size) {
-        prog = new int[size];
+    public IntCodeMachine4(long[] origProg, int size) {
+        prog = new long[size];
         for (int i = 0; i < origProg.length; i++) {
         	prog[i] = origProg[i];
         }
@@ -73,7 +73,7 @@ class IntCodeMachine4 {
         return finished;
     }
 
-    public int runUntilOutOfInputOrFinished(int[] inputs) {
+    public long runUntilOutOfInputOrFinished(int[] inputs) {
         LinkedList<Integer> storedInputs = new LinkedList<>();
         for (int i = 0; i < inputs.length; i++) {
             storedInputs.add(inputs[i]);
@@ -84,18 +84,18 @@ class IntCodeMachine4 {
             Instruction4 i = new Instruction4(prog[pc]);
             switch (i.op) {
                 case 1:
-                    int outsum = prog[pc + 3];
-                    int insum1 = i.getValue(prog, pc, 0, relBase);
-                    int insum2 = i.getValue(prog, pc, 1, relBase);
+                    int outsum = (int) prog[pc + 3];
+                    long insum1 = i.getValue(prog, pc, 0, relBase);
+                    long  insum2 = i.getValue(prog, pc, 1, relBase);
                     prog[outsum] = insum1 + insum2;
                     System.err.println("pc[" + outsum + "] = " + insum1 + " + " + insum2);
                     pc += 4;
                     break;
 
                 case 2:
-                    int outmul = prog[pc + 3];
-                    int inmul1 = i.getValue(prog, pc, 0, relBase);
-                    int inmul2 = i.getValue(prog, pc, 1, relBase);
+                    int outmul = (int) prog[pc + 3];
+                    long inmul1 = i.getValue(prog, pc, 0, relBase);
+                    long inmul2 = i.getValue(prog, pc, 1, relBase);
                     prog[outmul] = inmul1 * inmul2;
                     System.err.println("pc[" + outmul + "] = " + inmul1 + " * " + inmul2);
                     pc += 4;
@@ -111,22 +111,22 @@ class IntCodeMachine4 {
                         outOfInput = true;
                         break;
                     }
-                    int outstr = prog[pc + 1];
+                    int outstr = (int) prog[pc + 1];
                     prog[outstr] = strval;
                     System.err.println("pc[" + outstr + "] = " + strval);
                     pc += 2;
                     break;
 
                 case 4:
-                    int ldr = i.getValue(prog, pc, 0, relBase);
+                    long ldr = i.getValue(prog, pc, 0, relBase);
                     System.err.println("Output: " + ldr);
                     lastOutput = ldr;
                     pc += 2;
                     break;
 
                 case 5:
-                    int valueTrue = i.getValue(prog, pc, 0, relBase);
-                    int jumpTrue = i.getValue(prog, pc, 1, relBase);
+                    long valueTrue = i.getValue(prog, pc, 0, relBase);
+                    int jumpTrue = (int) i.getValue(prog, pc, 1, relBase);
                     if (valueTrue > 0) {
                         pc = jumpTrue;
                     } else {
@@ -135,8 +135,8 @@ class IntCodeMachine4 {
                     break;
 
                 case 6:
-                    int valueFalse = i.getValue(prog, pc, 0, relBase);
-                    int jumpFalse = i.getValue(prog, pc, 1, relBase);
+                    long valueFalse = i.getValue(prog, pc, 0, relBase);
+                    int jumpFalse = (int) i.getValue(prog, pc, 1, relBase);
                     if (valueFalse == 0) {
                         pc = jumpFalse;
                     } else {
@@ -145,9 +145,9 @@ class IntCodeMachine4 {
                     break;
 
                 case 7:
-                    int ltv1 = i.getValue(prog, pc, 0, relBase);
-                    int ltv2 = i.getValue(prog, pc, 1, relBase);
-                    int ltout = prog[pc + 3];
+                    long ltv1 = i.getValue(prog, pc, 0, relBase);
+                    long ltv2 = i.getValue(prog, pc, 1, relBase);
+                    int ltout = (int) prog[pc + 3];
                     if (ltv1 < ltv2) {
                         prog[ltout] = 1;
                     } else {
@@ -157,9 +157,9 @@ class IntCodeMachine4 {
                     break;
 
                 case 8:
-                    int eqv1 = i.getValue(prog, pc, 0, relBase);
-                    int eqv2 = i.getValue(prog, pc, 1, relBase);
-                    int eqout = prog[pc + 3];
+                    long eqv1 = i.getValue(prog, pc, 0, relBase);
+                    long eqv2 = i.getValue(prog, pc, 1, relBase);
+                    int eqout = (int) prog[pc + 3];
                     if (eqv1 == eqv2) {
                         prog[eqout] = 1;
                     } else {
@@ -169,7 +169,7 @@ class IntCodeMachine4 {
                     break;
                     
                 case 9:
-                	int newBase = i.getValue(prog, pc, 0, relBase);
+                	int newBase = (int) i.getValue(prog, pc, 0, relBase);
                 	relBase = newBase;
                 	pc += 2;
                 	break;
@@ -228,14 +228,14 @@ public class IntCode4 {
         String data = reader.readLine();
         reader.close();
         String[] progString = data.split(",");
-        int[] prog = new int[progString.length];
+        long[] prog = new long[progString.length];
         for (int i = 0; i < prog.length; i++) {
-            prog[i] = Integer.parseInt(progString[i]);
+            prog[i] = Long.parseLong(progString[i]);
         }
 
         int[] inputs = new int[]{1};
         IntCodeMachine4 m = new IntCodeMachine4(prog, 1000000);
-        int output = m.runUntilOutOfInputOrFinished(inputs);
+        long output = m.runUntilOutOfInputOrFinished(inputs);
         System.err.println("Final result = " + output);
     }
 }
