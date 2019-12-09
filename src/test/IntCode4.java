@@ -42,7 +42,7 @@ class Instruction4 {
         } else if (mode[arg] == 1) {
             return prog[pc + arg + 1];
         } else if (mode[arg] == 2) {
-        	return prog[prog[pc + arg + 1] + pc + relBase];
+        	return prog[prog[pc + arg + 1] + relBase];
         }
         throw new RuntimeException(
                 "Unknown mode " + mode[arg] + " at pc " + pc + " arg " + arg);
