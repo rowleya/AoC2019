@@ -331,7 +331,11 @@ public class ArcadeIntCode {
         int maxY = Integer.MIN_VALUE;
         int[] inputs = new int[]{};
         Scanner in = new Scanner(System.in);
-        while (!m.isFinished()) {
+        int nBlocks = 1;
+        while (!m.isFinished() && nBlocks > 0) {
+        	int ballX = 0;
+        	int paddleX = 0;
+        	nBlocks = 0;
             List<Long> outputs = m.runUntilOutOfInputOrFinished(inputs);
             for (int i = 0; i < outputs.size(); i += 3) {
             	int x = outputs.get(i).intValue();
@@ -348,13 +352,26 @@ public class ArcadeIntCode {
 		        	Tile t = new Tile(x, y, type);
 		        	Pos p = new Pos(x, y);
 		        	tiles.put(p, t);
+		        	if (type == 2) {
+		        		nBlocks++;
+		        	} else if (type == 4) {
+		        		ballX = x;
+		        	} else if (type == 3) {
+		        		paddleX = x;
+		        	}
             	}
             }
-            System.err.println();
+            System.err.println(nBlocks);
             draw(tiles, minX, minY, maxX, maxY);
             System.err.println(score);
-            System.err.print("Joystick: ");
-            inputs = new int[] {in.nextInt()};
+            int inp = 0;
+            if (ballX > paddleX) {
+            	inp = 1;
+            } else if (paddleX > ballX) {
+            	inp = -1;
+            }
+            System.err.println("Joystick: " + inp);
+            inputs = new int[] {inp};
         }
         in.close();
         System.err.println("Final result = " + score);
