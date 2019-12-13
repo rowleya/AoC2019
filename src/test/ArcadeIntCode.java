@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 class Instruction6 {
@@ -222,6 +223,30 @@ class IntCodeMachine6 {
     }
 }
 
+class Pos {
+	int x;
+	int y;
+	
+	public Pos(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+	
+	@Override
+	public int hashCode() {
+		return (x + "," + y).hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof Pos) {
+			Pos c = (Pos) obj;
+			return c.x == x && c.y == y;
+		}
+		return false;
+	}
+}
+
 class Tile {
 	public int x;
 	public int y;
@@ -235,20 +260,53 @@ class Tile {
 	
 	@Override
 	public int hashCode() {
-		return (x + "," + y + "," + type).hashCode();
+		return (x + "," + y).hashCode();
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof Tile) {
 			Tile c = (Tile) obj;
-			return c.x == x && c.y == y && c.type == type;
+			return c.x == x && c.y == y;
 		}
 		return false;
 	}
 }
 
 public class ArcadeIntCode {
+	
+	public static void draw(Map<Pos, Tile> tiles, int minX, int minY, int maxX, int maxY) {
+		for (int i = minY; i <= maxY; i++) {
+			for (int j = minX; j <= maxX; j++) {
+				Pos p = new Pos(j, i);
+				if (!tiles.containsKey(p)) {
+					System.err.print(' ');
+				} else {
+					Tile t = tiles.get(p);
+					char c = ' ';
+					switch (t.type) {
+					case 0:
+						c = ' ';
+						break;
+					case 1:
+						c = '#';
+						break;
+					case 2:
+						c = '*';
+						break;
+					case 3:
+						c = '-';
+						break;
+					case 4:
+						c = '0';
+						break;
+					}
+					System.err.print(c);;
+				}
+			}
+			System.err.println();
+		}
+	}
 
     public static void main(String[] args) throws Exception {
 
@@ -260,24 +318,45 @@ public class ArcadeIntCode {
         for (int i = 0; i < prog.length; i++) {
             prog[i] = Long.parseLong(progString[i]);
         }
+        prog[0] = 2;
         
-        Map<Integer, List<Tile>> tiles = new HashMap<Integer, List<Tile>>();
+        Map<Pos, Tile> tiles = new HashMap<Pos, Tile>();
         
         IntCodeMachine6 m = new IntCodeMachine6(prog, 1000000);
+        
+        int score = 0;
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        int[] inputs = new int[]{};
+        Scanner in = new Scanner(System.in);
         while (!m.isFinished()) {
-            int[] inputs = new int[]{};
             List<Long> outputs = m.runUntilOutOfInputOrFinished(inputs);
             for (int i = 0; i < outputs.size(); i += 3) {
             	int x = outputs.get(i).intValue();
             	int y = outputs.get(i + 1).intValue();
             	int type = outputs.get(i + 2).intValue();
-            	Tile t = new Tile(x, y, type);
-            	if (!tiles.containsKey(type)) {
-            		tiles.put(type, new ArrayList<Tile>());
+            	if (x == -1 && y == 0) {
+            		score = type;
+            	} else {
+            		maxX = Math.max(x, maxX);
+            		maxY = Math.max(y, maxY);
+            		minX = Math.min(x, minX);
+            		minY = Math.min(y, minY);
+		        	
+		        	Tile t = new Tile(x, y, type);
+		        	Pos p = new Pos(x, y);
+		        	tiles.put(p, t);
             	}
-            	tiles.get(type).add(t);
             }
+            System.err.println();
+            draw(tiles, minX, minY, maxX, maxY);
+            System.err.println(score);
+            System.err.print("Joystick: ");
+            inputs = new int[] {in.nextInt()};
         }
-        System.err.println("Final result = " + tiles.get(2).size());
+        in.close();
+        System.err.println("Final result = " + score);
     }
 }
