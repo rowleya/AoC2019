@@ -114,6 +114,8 @@ public class Fuel2 {
 		RNode fuel = new RNode(reactions.get("FUEL"));
 		Deque<RNode> needed = new ArrayDeque<RNode>();
 		needed.addLast(fuel);
+		Map<String, Chem> used = new HashMap<String, Chem>();
+		Map<String, Chem> extra = new HashMap<String, Chem>();
 		Map<String, RNode> nodes = new HashMap<String, RNode>();
 		nodes.put("FUEL", fuel);
 		while (!needed.isEmpty()) {
