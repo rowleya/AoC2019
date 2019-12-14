@@ -64,9 +64,10 @@ class Reaction {
 class RNode {
 	Reaction r;
 	int quant;
+	int extra;
 	List<RNode> children = new ArrayList<RNode>();
 	
-	public RNode(Reaction r, int quant) {
+	public RNode(Reaction r, int quant, int extra) {
 		this.r = r;
 		this.quant = quant;
 	}
@@ -136,7 +137,7 @@ public class Fuel2 {
 		    reactions.put(output.id, r);
 		}
 		
-		RNode fuel = new RNode(reactions.get("FUEL"), 1);
+		RNode fuel = new RNode(reactions.get("FUEL"), 1, 0);
 		Deque<RNode> needed = new ArrayDeque<RNode>();
 		needed.addLast(fuel);
 		Map<String, RNode> nodes = new HashMap<String, RNode>();
@@ -144,16 +145,20 @@ public class Fuel2 {
 		while (!needed.isEmpty()) {
 			RNode r = needed.removeFirst();
 			int ratio = (int) Math.ceil((double) r.quant / (double) r.r.output.quant);
+			int extra = (ratio * r.r.output.quant) - r.quant;
 			for (Chem input : r.r.input) {
 				Reaction re = reactions.get(input.id);
-				RNode child = new RNode(re, ratio * input.quant);
+				RNode child = new RNode(re, ratio * input.quant, extra);
 				r.addChild(child);
 				if (re != null) {
 					needed.add(child);
 				}
 			}
 		}
-		System.err.println(fuel.count());
+		
+		Map<String, Chem> quants = new HashMap<String, Chem>();
+		fuel.traverse(quants);
+		System.err.println(quants.get("ORE").quant);
 	}
 	
 
