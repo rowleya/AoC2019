@@ -102,22 +102,46 @@ public class Fuel2 {
         Map<String, Chem> extra = new HashMap<String, Chem>();
         while (!needed.isEmpty()) {
             Chem out = needed.removeLast();
+
+            Chem e = extra.get(out.id);
+            long quantNeeded = out.quant;
+            long quantNeededNext = quantNeeded;
+            if (e != null) {
+                if (quantNeeded >= e.quant) {
+                    System.err.println("Using up all " + e.quant + " of " + input.id);
+                    quantNeededNext = quantNeeded - e.quant;
+                    e.quant = 0;
+                } else {
+                    System.err.println("Using up " + quantNeeded + " of " + e.quant + " of " + input.id);
+                    e.quant -= quantNeeded;
+                    quantNeededNext = 0;
+                }
+            }
+
             Reaction r = reactions.get(out.id);
+
             int ratio = (int) Math.ceil((double) out.quant / (double) r.output.quant);
+            System.err.println(r.asString(ratio));
             for (Chem input : r.input) {
                 long quantNeeded = input.quant * ratio;
                 long quantNeededNext = quantNeeded;
                 Chem e = extra.get(input.id);
                 if (e != null) {
-                    if (quantNeeded > e.quant) {
+                    if (quantNeeded >= e.quant) {
+                        System.err.println("Using up all " + e.quant + " of " + input.id);
                         quantNeededNext = quantNeeded - e.quant;
                         e.quant = 0;
                     } else {
+                        System.err.println("Using up " + quantNeeded + " of " + e.quant + " of " + input.id);
                         e.quant -= quantNeeded;
                         quantNeededNext = 0;
                     }
+                    if (e.quant == 0) {
+                        extra.remove(input.id);
+                    }
                 }
                 Chem u = used.get(input.id);
+                System.err.println("Used " + quantNeeded + " of " + input.id);
                 if (u == null) {
                     u = new Chem(input.id, quantNeeded);
                     used.put(input.id, u);
@@ -130,12 +154,14 @@ public class Fuel2 {
             }
 
             long extraProduced = (ratio * r.output.quant) - out.quant;
+            System.err.println("Produced " + extraProduced + " extra " + r.output.id);
             if (extraProduced > 0) {
                 Chem e = extra.get(r.output.id);
                 if (e == null) {
                     e = new Chem(r.output.id, extraProduced);
                     extra.put(r.output.id, e);
                 } else {
+                    System.err.println("Now an extra " + extraProduced + " " + r.output.id);
                     e.quant += extraProduced;
                 }
             }
@@ -159,9 +185,9 @@ public class Fuel2 {
             reactions.put(output.id, r);
         }
 
-        System.err.println(test(reactions, 1));
-
-        long max = 1000000000000L;
+        System.err.println(test(reactions, 460664));
+        //           781925695372
+        /*long max = 1000000000000L;
 
         long imin = max / test(reactions, 1);
         long imax = 2 * imin;
@@ -179,7 +205,7 @@ public class Fuel2 {
             } else {
                 imax = imid;
             }
-        }
+        } */
     }
 
 
