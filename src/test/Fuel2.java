@@ -111,22 +111,26 @@ public class Fuel2 {
 		    reactions.put(output.id, r);
 		}
 		
-		RNode fuel = new RNode(reactions.get("FUEL"));
-		Deque<RNode> needed = new ArrayDeque<RNode>();
-		needed.addLast(fuel);
+		//RNode fuel = new RNode(reactions.get("FUEL"));
+		//Deque<RNode> needed = new ArrayDeque<RNode>();
+		Deque<Chem> needed = new ArrayDeque<Chem>();
+		needed.addLast(reactions.get("FUEL").output);
 		Map<String, Chem> used = new HashMap<String, Chem>();
 		Map<String, Chem> extra = new HashMap<String, Chem>();
-		Map<String, RNode> nodes = new HashMap<String, RNode>();
-		nodes.put("FUEL", fuel);
+		//Map<String, RNode> nodes = new HashMap<String, RNode>();
+		//nodes.put("FUEL", fuel);
 		while (!needed.isEmpty()) {
-			RNode r = needed.removeFirst();
-			for (Chem input : r.r.input) {
-				Reaction re = reactions.get(input.id);
-				RNode child = new RNode(re);
-				r.addChild(child);
-				child.addParent(r);
-				if (re != null) {
-					needed.add(child);
+			Chem out = needed.removeLast();
+			Reaction r = reactions.get(out.id);
+			if (r != null) {
+				for (Chem input : r.input) {
+					Reaction re = reactions.get(input.id);
+					RNode child = new RNode(re);
+					r.addChild(child);
+					child.addParent(r);
+					if (re != null) {
+						needed.add(child);
+					}
 				}
 			}
 		}
