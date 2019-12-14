@@ -63,13 +63,10 @@ class Reaction {
 
 class RNode {
 	Reaction r;
-	int quant;
-	int extra;
 	List<RNode> children = new ArrayList<RNode>();
 	
-	public RNode(Reaction r, int quant, int extra) {
+	public RNode(Reaction r) {
 		this.r = r;
-		this.quant = quant;
 	}
 	
 	public void addChild(RNode c) {
@@ -88,34 +85,6 @@ class RNode {
 		return false;
 	}
 	
-	public int count() {
-		if (r == null) {
-			return quant;
-		}
-		int count = 0;
-		for (RNode child : children) {
-			count += child.count();
-		}
-		return count;
-	}
-	
-	public void traverse(Map<String, Chem> quants) {
-		String id = null;
-		if (r == null) {
-			id = "ORE";
-		} else {
-			id = r.output.id;
-		}
-		Chem c = quants.get(id);
-		if (c == null) {
-			quants.put(id, new Chem(id, quant));
-		} else {
-			c.quant += quant;
-		}
-		for (RNode child : children) {
-			child.traverse(quants);
-		}
-	}
 	
 }
 
@@ -137,18 +106,16 @@ public class Fuel2 {
 		    reactions.put(output.id, r);
 		}
 		
-		RNode fuel = new RNode(reactions.get("FUEL"), 1, 0);
+		RNode fuel = new RNode(reactions.get("FUEL"));
 		Deque<RNode> needed = new ArrayDeque<RNode>();
 		needed.addLast(fuel);
 		Map<String, RNode> nodes = new HashMap<String, RNode>();
 		nodes.put("FUEL", fuel);
 		while (!needed.isEmpty()) {
 			RNode r = needed.removeFirst();
-			int ratio = (int) Math.ceil((double) r.quant / (double) r.r.output.quant);
-			int extra = (ratio * r.r.output.quant) - r.quant;
 			for (Chem input : r.r.input) {
 				Reaction re = reactions.get(input.id);
-				RNode child = new RNode(re, ratio * input.quant, extra);
+				RNode child = new RNode(re);
 				r.addChild(child);
 				if (re != null) {
 					needed.add(child);
@@ -156,9 +123,6 @@ public class Fuel2 {
 			}
 		}
 		
-		Map<String, Chem> quants = new HashMap<String, Chem>();
-		fuel.traverse(quants);
-		System.err.println(quants.get("ORE").quant);
 	}
 	
 
