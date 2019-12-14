@@ -63,6 +63,7 @@ class Reaction {
 
 class RNode {
 	Reaction r;
+	List<RNode> parents = new ArrayList<RNode>();
 	List<RNode> children = new ArrayList<RNode>();
 	
 	public RNode(Reaction r) {
@@ -71,6 +72,10 @@ class RNode {
 	
 	public void addChild(RNode c) {
 		children.add(c);
+	}
+	
+	public void addParent(RNode p) {
+		parents.add(p);
 	}
 	
 	public boolean dependsOn(Chem c) {
@@ -117,6 +122,7 @@ public class Fuel2 {
 				Reaction re = reactions.get(input.id);
 				RNode child = new RNode(re);
 				r.addChild(child);
+				child.addParent(r);
 				if (re != null) {
 					needed.add(child);
 				}
