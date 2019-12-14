@@ -98,7 +98,7 @@ public class Fuel2 {
     public static long test(Map<String, Reaction> reactions, long wanted) {
         Deque<Chem> needed = new ArrayDeque<Chem>();
         needed.addLast(new Chem("FUEL", wanted));
-        Map<String, Chem> used = new HashMap<String, Chem>();
+        long ore = 0;
         Map<String, Chem> extra = new HashMap<String, Chem>();
         while (!needed.isEmpty()) {
             Chem out = needed.removeLast();
@@ -108,19 +108,33 @@ public class Fuel2 {
             long quantNeededNext = quantNeeded;
             if (e != null) {
                 if (quantNeeded >= e.quant) {
-                    System.err.println("Using up all " + e.quant + " of " + input.id);
+                    System.err.println("Using up all " + e.quant + " of " + out.id);
                     quantNeededNext = quantNeeded - e.quant;
                     e.quant = 0;
                 } else {
-                    System.err.println("Using up " + quantNeeded + " of " + e.quant + " of " + input.id);
+                    System.err.println("Using up " + quantNeeded + " of " + e.quant + " of " + out.id);
                     e.quant -= quantNeeded;
                     quantNeededNext = 0;
+                    continue;
                 }
             }
 
             Reaction r = reactions.get(out.id);
 
             int ratio = (int) Math.ceil((double) out.quant / (double) r.output.quant);
+            long extraProduced = (ratio * r.output.quant) - out.quant;
+            System.err.println("Produced " + extraProduced + " extra " + r.output.id);
+            if (extraProduced > 0) {
+                Chem ex = extra.get(r.output.id);
+                if (ex == null) {
+                    ex = new Chem(r.output.id, extraProduced);
+                    extra.put(r.output.id, ex);
+                } else {
+                    System.err.println("Now an extra " + extraProduced + " " + r.output.id);
+                    ex.quant += extraProduced;
+                }
+            }
+
             System.err.println(r.asString(ratio));
             for (Chem input : r.input) {
                 long quantNeeded = input.quant * ratio;
@@ -153,18 +167,7 @@ public class Fuel2 {
                 }
             }
 
-            long extraProduced = (ratio * r.output.quant) - out.quant;
-            System.err.println("Produced " + extraProduced + " extra " + r.output.id);
-            if (extraProduced > 0) {
-                Chem e = extra.get(r.output.id);
-                if (e == null) {
-                    e = new Chem(r.output.id, extraProduced);
-                    extra.put(r.output.id, e);
-                } else {
-                    System.err.println("Now an extra " + extraProduced + " " + r.output.id);
-                    e.quant += extraProduced;
-                }
-            }
+
         }
         return used.get("ORE").quant;
     }
