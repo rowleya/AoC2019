@@ -111,6 +111,9 @@ class RNode {
 		} else {
 			c.quant += quant;
 		}
+		for (RNode child : children) {
+			child.traverse(quants);
+		}
 	}
 	
 }
