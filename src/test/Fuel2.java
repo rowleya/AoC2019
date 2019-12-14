@@ -105,17 +105,14 @@ public class Fuel2 {
 
             Chem e = extra.get(out.id);
             long quantNeeded = out.quant;
-            long quantNeededNext = quantNeeded;
             if (e != null) {
                 if (quantNeeded >= e.quant) {
                     System.err.println("Using up all " + e.quant + " of " + out.id);
-                    quantNeededNext = quantNeeded - e.quant;
                     e.quant = 0;
+                    continue;
                 } else {
                     System.err.println("Using up " + quantNeeded + " of " + e.quant + " of " + out.id);
                     e.quant -= quantNeeded;
-                    quantNeededNext = 0;
-                    continue;
                 }
             }
 
@@ -137,39 +134,17 @@ public class Fuel2 {
 
             System.err.println(r.asString(ratio));
             for (Chem input : r.input) {
-                long quantNeeded = input.quant * ratio;
-                long quantNeededNext = quantNeeded;
-                Chem e = extra.get(input.id);
-                if (e != null) {
-                    if (quantNeeded >= e.quant) {
-                        System.err.println("Using up all " + e.quant + " of " + input.id);
-                        quantNeededNext = quantNeeded - e.quant;
-                        e.quant = 0;
-                    } else {
-                        System.err.println("Using up " + quantNeeded + " of " + e.quant + " of " + input.id);
-                        e.quant -= quantNeeded;
-                        quantNeededNext = 0;
-                    }
-                    if (e.quant == 0) {
-                        extra.remove(input.id);
-                    }
-                }
-                Chem u = used.get(input.id);
-                System.err.println("Used " + quantNeeded + " of " + input.id);
-                if (u == null) {
-                    u = new Chem(input.id, quantNeeded);
-                    used.put(input.id, u);
-                } else {
-                    u.quant += quantNeeded;
-                }
-                if (!input.id.equals("ORE") && quantNeededNext > 0) {
-                    needed.addLast(new Chem(input.id, quantNeededNext));
+                long inNeeded = input.quant * ratio;
+                needed.addLast(new Chem(input.id, inNeeded));
+
+                if (input.id.equals("ORE")) {
+                    ore += inNeeded;
                 }
             }
 
 
         }
-        return used.get("ORE").quant;
+        return ore;
     }
 
     public static void main(String[] args) throws Exception {
