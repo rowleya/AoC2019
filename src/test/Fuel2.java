@@ -63,6 +63,7 @@ class Reaction {
 
 class RNode {
 	Reaction r;
+	int quant;
 	List<RNode> parents = new ArrayList<RNode>();
 	List<RNode> children = new ArrayList<RNode>();
 	
@@ -89,7 +90,6 @@ class RNode {
 		}
 		return false;
 	}
-	
 	
 }
 
