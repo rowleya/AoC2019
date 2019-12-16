@@ -34,15 +34,17 @@ public class FFT {
         
         int[] output = new int[input.length];
         for (int phase = 0; phase < 100; phase++) {
-	  
 	        for (int i = 0; i < output.length; i++) {
-	        	int skip = i - 1;
-	        	int skip2 = i + output.length * 2;
+	        	output[i] = 0;
 	        	for (int j = i + 1; j < input.length; j += (i + 1) * 4) {
-	        		output[i] += input[j];
+	        		for (int k = 0; k < i && (j + k) < input.length; k++) {
+	        		    output[i] += input[j + k];
+	        		}
 	        	}
-	        	for (int j = i + 3; j < input.length; j += (i + 1) * 4) {
-	        		output[i] -= input[j];
+	        	for (int j = i + ((i + 1) * 2); j < input.length; j += (i + 1) * 4) {
+	        		for (int k = 0; k < i && (j + k) < input.length; k++) {
+	        		    output[i] -= input[j + k];
+	        		}
 	        	}
 	        	/*int p = 0;
 	        	int c = 0;
