@@ -46,11 +46,12 @@ public class FFT {
 
         int sum = 0;
         int[] output = new int[input.length];
+        System.err.println("Start 1s at " + offset + " End 1s at " + (offset + 1) * 4 + " Input length " + input.length);
         for (int phase = 0; phase < 100; phase++) {
             sum = 0;
-            for (int it = input.length - 1; it >= input.length / 2; it--) {
-                sum += input[it];
-                output[it] = sum % 10;
+            for (int i = input.length - 1; i >= offset; i--) {
+                sum += input[i];
+                output[i] = sum % 10;
             }
             input = output;
             output = new int[input.length];
@@ -58,11 +59,6 @@ public class FFT {
 
 //        int[] output = new int[input.length];
 //        for (int phase = 0; phase < 100; phase++) {
-//            int[] outputRepeat = new int[output.length];
-//            for (int i = 0; i < output.length; i++) {
-//                outputRepeat[i] = (int) findLCM((i + 1) * 4, len);
-//                System.err.println(outputRepeat[i]);
-//            }
 //            for (int i = 0; i < output.length; i++) {
 //                output[i] = 0;
 //                for (int j = i; j < input.length; j += (i + 1) * 4) {
