@@ -12,10 +12,10 @@ public class FFT {
 		BufferedReader reader = new BufferedReader(new FileReader("fft"));
         String data = reader.readLine();
         reader.close();
-		// data = "80871224585914546619083218645595";
-		data = "03036732577212944063491565474664";
+		data = "80871224585914546619083218645595";
+		// data = "03036732577212944063491565474664";
         int [] pattern = new int[] {0, 1, 0, -1};
-        int repeat = 10000;
+        int repeat = 1;
         int [] input = new int[data.length() * repeat];
         for (int i = 0; i < data.length(); i++) {
         	input[i] = data.charAt(i) - ZERO;
@@ -30,12 +30,21 @@ public class FFT {
         }
         int offset = Integer.parseInt(off);
         System.err.println(offset);
+        offset = 0;
         
         int[] output = new int[input.length];
         for (int phase = 0; phase < 100; phase++) {
 	  
 	        for (int i = 0; i < output.length; i++) {
-	        	int p = 0;
+	        	int skip = i - 1;
+	        	int skip2 = i + output.length * 2;
+	        	for (int j = i + 1; j < input.length; j += (i + 1) * 4) {
+	        		output[i] += input[j];
+	        	}
+	        	for (int j = i + 3; j < input.length; j += (i + 1) * 4) {
+	        		output[i] -= input[j];
+	        	}
+	        	/*int p = 0;
 	        	int c = 0;
 	        	output[i] = 0;
 	        	for (int j = 0; j < input.length; j++) {
@@ -51,7 +60,7 @@ public class FFT {
 	        		//System.err.print(input[j] + "*" + pattern[p] + " + ");
 	        		output[i] += input[j] * pattern[p];
 	        		
-	        	}
+	        	}*/
 	        	//System.err.print(" = " + output[i]);
 	        	output[i] = output[i] % 10;
 	        	if (output[i] < 0) {
