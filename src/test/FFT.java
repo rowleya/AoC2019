@@ -33,7 +33,7 @@ public class FFT {
         offset = 0;
         
         int[] output = new int[input.length];
-        for (int phase = 0; phase < 100; phase++) {
+        for (int phase = 0; phase < 1; phase++) {
 	        for (int i = 0; i < output.length; i++) {
 	        	output[i] = 0;
 	        	for (int j = i + 1; j < input.length; j += (i + 1) * 4) {
@@ -63,12 +63,12 @@ public class FFT {
 	        		output[i] += input[j] * pattern[p];
 	        		
 	        	}*/
-	        	//System.err.print(" = " + output[i]);
+	        	System.err.print(" = " + output[i]);
 	        	output[i] = output[i] % 10;
 	        	if (output[i] < 0) {
 	        		output[i] *= -1;
 	        	}
-	        	//System.err.println(" = " + output[i]);
+	        	System.err.println(" = " + output[i]);
 	        }
 	        //System.err.println(phase);
 	        input = output;
