@@ -14,6 +14,7 @@ public class FFT {
         reader.close();
 		data = "80871224585914546619083218645595";
 		// data = "03036732577212944063491565474664";
+		data = "12345678";
         int [] pattern = new int[] {0, 1, 0, -1};
         int repeat = 1;
         int [] input = new int[data.length() * repeat];
