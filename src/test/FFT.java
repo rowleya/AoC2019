@@ -14,7 +14,7 @@ public class FFT {
         reader.close();
 		data = "80871224585914546619083218645595";
 		// data = "03036732577212944063491565474664";
-		data = "12345678";
+		// data = "12345678";
         int [] pattern = new int[] {0, 1, 0, -1};
         int repeat = 1;
         int [] input = new int[data.length() * repeat];
@@ -34,10 +34,10 @@ public class FFT {
         offset = 0;
         
         int[] output = new int[input.length];
-        for (int phase = 0; phase < 1; phase++) {
+        for (int phase = 0; phase < 100; phase++) {
 	        for (int i = 0; i < output.length; i++) {
 	        	output[i] = 0;
-	        	for (int j = i + 1; j < input.length; j += (i + 1) * 4) {
+	        	for (int j = i; j < input.length; j += (i + 1) * 4) {
 	        		for (int k = 0; k <= i && (j + k) < input.length; k++) {
 	        		    output[i] += input[j + k];
 	        		}
