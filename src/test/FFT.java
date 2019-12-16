@@ -37,12 +37,12 @@ public class FFT {
 	        for (int i = 0; i < output.length; i++) {
 	        	output[i] = 0;
 	        	for (int j = i + 1; j < input.length; j += (i + 1) * 4) {
-	        		for (int k = 0; k < i && (j + k) < input.length; k++) {
+	        		for (int k = 0; k <= i && (j + k) < input.length; k++) {
 	        		    output[i] += input[j + k];
 	        		}
 	        	}
 	        	for (int j = i + ((i + 1) * 2); j < input.length; j += (i + 1) * 4) {
-	        		for (int k = 0; k < i && (j + k) < input.length; k++) {
+	        		for (int k = 0; k <= i && (j + k) < input.length; k++) {
 	        		    output[i] -= input[j + k];
 	        		}
 	        	}
@@ -70,7 +70,7 @@ public class FFT {
 	        	}
 	        	//System.err.println(" = " + output[i]);
 	        }
-	        System.err.println(phase);
+	        //System.err.println(phase);
 	        input = output;
 	        output = new int[input.length];
         }
