@@ -6,7 +6,19 @@ import java.util.Arrays;
 
 public class FFT {
 	
-	private static final int ZERO = '0';
+    private static final int ZERO = '0';
+    
+    private static long findGCD(long number1, long number2) {
+        //base case
+        if (number2 == 0) {
+            return number1;
+        }
+        return findGCD(number2, number1 % number2);
+    }
+
+    private static long findLCM(long number1, long number2) {
+        return (number1 * number2) / findGCD(number1, number2);
+    }
 
 	public static void main(String[] args)  throws Exception {
 		BufferedReader reader = new BufferedReader(new FileReader("fft"));
