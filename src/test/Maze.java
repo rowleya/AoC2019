@@ -86,6 +86,38 @@ class State {
 }
 
 public class Maze {
+	
+	public void getMinKey(State state, PosM start) {
+		Set<PosM> visited = new HashSet<PosM>();
+        Deque<PosM> reverse = new ArrayDeque<PosM>();
+        visited.add(start);
+        reverse.push(start);
+        PosM p = start;
+        Set<PosM> keysFound = new HashSet<PosM>();
+        int distanceToKey = 0;
+        int distance = 0;
+        while (keysFound.size() < state.keys.size()) {
+        	PosM next = state.next(p, visited, keysFound);
+        	if (next != null) {
+        		System.err.println("Move to " + next);
+        		p = next;
+        		visited.add(next);
+        		reverse.push(next);
+        		distanceToKey++;
+        		if (state.keys.containsKey(p)) {
+        			System.err.println("Found key " + state.keys.get(p) + "; " + (state.keys.size() - keysFound.size()) + " to go");
+        			keysFound.add(p);
+        			distance += distanceToKey;
+        			distanceToKey = 0;
+        		}
+        	} else {
+        		
+        		p = reverse.pop();
+        		distanceToKey--;
+        		System.err.println("Go back to " + p);
+        	}
+        }
+	}
 
 	public static void main(String[] args) throws Exception {
 		BufferedReader reader = new BufferedReader(new FileReader("maze"));
@@ -118,35 +150,7 @@ public class Maze {
         
         System.err.println(start);
         
-        Set<PosM> visited = new HashSet<PosM>();
-        Deque<PosM> reverse = new ArrayDeque<PosM>();
-        visited.add(start);
-        reverse.push(start);
-        PosM p = start;
-        Set<PosM> keysFound = new HashSet<PosM>();
-        int distanceToKey = 0;
-        int distance = 0;
-        while (keysFound.size() < state.keys.size()) {
-        	PosM next = state.next(p, visited, keysFound);
-        	if (next != null) {
-        		System.err.println("Move to " + next);
-        		p = next;
-        		visited.add(next);
-        		reverse.push(next);
-        		distanceToKey++;
-        		if (state.keys.containsKey(p)) {
-        			System.err.println("Found key " + state.keys.get(p) + "; " + (state.keys.size() - keysFound.size()) + " to go");
-        			keysFound.add(p);
-        			distance += distanceToKey;
-        			distanceToKey = 0;
-        		}
-        	} else {
-        		
-        		p = reverse.pop();
-        		distanceToKey--;
-        		System.err.println("Go back to " + p);
-        	}
-        }
+        
         System.err.println(distance);
 	}
 
