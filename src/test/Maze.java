@@ -111,74 +111,47 @@ class KeyDist {
 
 public class Maze {
 
-    public static Map<PosM, Integer> getMinKeys(State state, PosM start, Set<PosM> keysFound, Set<PosM> visited) {
-        Set<PosM> keysFoundHere = new HashSet<>(keysFound);
+    public static Map<PosM, Integer> getMinKeys(State state, PosM start, Set<PosM> keysFound) {
         Map<PosM, Integer> distances = new HashMap<>();
-        Set<PosM> visitedHere = new HashSet<PosM>(visited);
+        Set<PosM> visited = new HashSet<PosM>();
         visitedHere.add(start);
         PosM p = start;
-        List<PosM> nexts = state.nexts(p, visitedHere, keysFoundHere);
         //System.err.println("Starting at " + start + " with keys from " + keysFoundHere + " next = " + nexts);
 
-        int distance = 0;
         Deque<PosM> reverse = new ArrayDeque<>();
-        while (nexts.size() == 1 && (distance == 0 || !state.keys.containsKey(p) || keysFoundHere.contains(p))) {
-            PosM next = nexts.get(0);
+        reverse.add(start);
+        while (!reverse.isEmpty()) {
+            PosM next = state.next(p, visited, keysFound);
             visitedHere.add(next);
-            distance++;
+            if (state.keys.containsKey(next) && !keysFound.contains(next)) {
+                if (!distances.containsKey(next) || distances.get(next) > reverse.size()) {
+                    distances.put(next, reverse.size());
+                }
+            }
             p = next;
-            nexts = state.nexts(p, visitedHere, keysFoundHere);
         }
-
-        if (distance > 0 && state.keys.containsKey(p) && !keysFoundHere.contains(p)) {
-            distances.put(p, distance);
-            keysFoundHere.add(p);
-            //System.err.println("Found key " + state.keys.get(p) + " at " + p + " distance = " + distance + " from " + start);
-            Set<PosM> visitedKey = new HashSet<>();
-            Map<PosM, Integer> nextDistances = getMinKeys(state, p, keysFoundHere, visitedKey);
-            for (Entry<PosM, Integer> d : nextDistances.entrySet()) {
+        
+        Map<PosM, Integer> distsFromHere = new HashMap<>(distances);
+        for (Entry<PosM, Integer> dist : distances.entrySet()) {
+            PosM next = dist.getKey();
+            int distance = dist.getValue();
+            HashSet<PosM> nextKeysFound = new HashSet<>(keysFound);
+            nextKeysFound.add(next);
+            Map<PosM, Integer> nextDistances = getMinKeys(state, next new HashSet<PosM>(keysFound));
+            for (Entry<PosM, Integer> d : nextDistances) {
                 PosM key = d.getKey();
-                int newD = d.getValue() + distance;
-                if (distances.containsKey(key)) {
-                    int currentD = distances.get(key);
-                    if (newD < currentD) {
-                        distances.put(key, newD);
-                    }
-                } else {
-                    distances.put(key, newD);
-                }
-            }
-            //System.err.println("Return distances from key " + state.keys.get(p) + " = " + distances);
-            return distances;
-        }
-
-        if (nexts.size() == 0) {
-            return distances;
-        }
-
-        distance++;
-        //System.err.println("Options at " + p + " distance " + distance);
-        for (PosM next : nexts) {
-            Map<PosM, Integer> nextDistances = getMinKeys(state, next, keysFoundHere, visitedHere);
-            for (Entry<PosM, Integer> d : nextDistances.entrySet()) {
-                PosM key = d.getKey();
-                int newD = d.getValue() + distance;
-                if (distances.containsKey(key)) {
-                    int currentD = distances.get(key);
-                    if (newD < currentD) {
-                        distances.put(key, newD);
-                    }
-                } else {
-                    distances.put(key, newD);
+                int newD = d.getValue();
+                if (!distFromHere.containsKey(key) || distsFromHere.get(key) > newD + distance) {
+                    distsFromHere.put(key, newD + distance);
                 }
             }
         }
-        //System.err.println("Return distances from pos " + p + " = " + distances);
-        return distances;
+        
+        return distsFromHere;
     }
 
     public static void main(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("maze4"));
+        BufferedReader reader = new BufferedReader(new FileReader("maze2"));
         String line = null;
         int y = 0;
         State state = new State();
@@ -210,7 +183,7 @@ public class Maze {
 
         Set<PosM> keysFound = new HashSet<>();
         Set<PosM> visited = new HashSet<>();
-        Map<PosM, Integer> dists = getMinKeys(state, start, keysFound, visited);
+        Map<PosM, Integer> dists = getMinKeys(state, start, keysFound);
         for (Entry<PosM, Integer> entry : dists.entrySet()) {
             System.err.println(state.keys.get(entry.getKey()) + " = " + entry.getValue());
         }
