@@ -81,7 +81,7 @@ class State {
         if (keys.containsKey(p) && !keysFound.contains(p)) {
             return null;
         }
-        for (int i = 0; i < 4; i++) {
+        for (int i = 3; i >= 0; i--) {
             PosM next = move(p, i);
             if (!visited.contains(next) && isReachable(next, keysFound)) {
                 return next;
@@ -158,7 +158,7 @@ public class Maze {
         } else {
             Map<String, Integer> m = memory.get(start);
             if (m.containsKey(keysToGo)) {
-                System.err.println("Using " + start + ": " + keysToGo + " = " + m.get(keysToGo));
+                System.err.println("Using " + state.keys.get(start) + ": " + keysToGo + " = " + m.get(keysToGo));
                 return m.get(keysToGo);
             }
         }
@@ -179,17 +179,17 @@ public class Maze {
                     done = true;
                 } else {
                     p = reverse.pop();
-                    //System.err.println("Back to " + p);
+                    System.err.println("Back to " + p);
                 }
             } else {
-                //System.err.println("Forward to " + next);
+                System.err.println("Forward to " + next);
                 if (state.keys.containsKey(next) && !keysFound.contains(next)) {
                     int d = reverse.size() + 1;
-                    if (!distances.containsKey(next) || distances.get(next) > d) {
+                    //if (!distances.containsKey(next) || distances.get(next) > d) {
                         distances.put(next, d);
                         options += state.keys.get(next);
-                        //System.err.println("Key " + state.keys.get(next) + " at " + next + " distance " + (reverse.size() + 1));
-                    }
+                        System.err.println("Key " + state.keys.get(next) + " at " + next + " distance " + (reverse.size() + 1));
+                    //}
                 }
                 visited.add(next);
                 reverse.push(p);
@@ -213,9 +213,7 @@ public class Maze {
 
         //System.err.println("New from " + start + ": " + keysToGo + " " + minDistance);
         // System.err.println("New from " + start + ": " + minDistance);
-        if (keysToGo.length() < state.keys.size()) {
-            memory.get(start).put(keysToGo, minDistance);
-        }
+        memory.get(start).put(keysToGo, minDistance);
         return minDistance;
     }
 
@@ -254,7 +252,7 @@ public class Maze {
     }
 
     public static void main(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("maze"));
+        BufferedReader reader = new BufferedReader(new FileReader("../../maze"));
         String line = null;
         int y = 0;
         State state = new State();
