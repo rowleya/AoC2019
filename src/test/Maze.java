@@ -140,16 +140,16 @@ class SearchState  implements Comparable<SearchState>{
 
 public class Maze {
 
-    public static int getMinDistance(State state, PosM start, Set<PosM> keysFound, Map<PosM, Map<String, Integer>> memory, int distance) {
+    public static int getMinDistance(State state, PosM start, Set<PosM> keysFound, Map<PosM, Map<String, Integer>> memory) {
         Map<PosM, Integer> distances = new HashMap<>();
-        System.err.println("At " + start + " " + state.keys.get(start) + " " + distance);
+        System.err.println("At " + start + " " + state.keys.get(start));
         if (keysFound.size() == state.keys.size()) {
             System.err.print("End: ");
             for (PosM k : keysFound) {
                 System.err.print(state.keys.get(k));
             }
-            System.err.println(" " + distance);
-            return distance;
+            System.err.println();
+            return 0;
         }
         String keysToGo = "";
         for (PosM key : state.keys.keySet()) {
@@ -189,7 +189,7 @@ public class Maze {
             } else {
                 //System.err.println("Forward to " + next);
                 if (state.keys.containsKey(next) && !keysFound.contains(next)) {
-                    int d = distance + reverse.size() + 1;
+                    int d = reverse.size() + 1;
                     if (!distances.containsKey(next) || distances.get(next) > d) {
                         distances.put(next, d);
                         options += state.keys.get(next);
@@ -209,7 +209,7 @@ public class Maze {
             int d = dist.getValue();
             Set<PosM> nextKeysFound = new LinkedHashSet<>(keysFound);
             nextKeysFound.add(next);
-            int nextD = getMinDistance(state, next, nextKeysFound, memory, d);
+            int nextD = getMinDistance(state, next, nextKeysFound, memory) + d;
             System.err.println("Distance from " + start + " = " + nextD);
             minDistance = Math.min(minDistance, nextD);
         }
@@ -255,7 +255,7 @@ public class Maze {
     }
 
     public static void main(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("maze4"));
+        BufferedReader reader = new BufferedReader(new FileReader("maze"));
         String line = null;
         int y = 0;
         State state = new State();
@@ -286,7 +286,7 @@ public class Maze {
         System.err.println(start);
 
         Map<PosM, Map<String, Integer>> memory = new HashMap<>();
-        int minDistance = getMinDistance(state, start, new HashSet<PosM>(), memory, 0);
+        int minDistance = getMinDistance(state, start, new HashSet<PosM>(), memory);
         System.err.println(minDistance);
 
         /*Map<PosM, Map<PosM, Integer>> distsPerNode = new HashMap<>();
