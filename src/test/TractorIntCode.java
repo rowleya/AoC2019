@@ -61,8 +61,8 @@ class InstructionT {
 }
 
 class IntCodeMachineT {
-	
-	private static final boolean DEBUG = false;
+
+    private static final boolean DEBUG = false;
 
     private long[] prog;
 
@@ -81,21 +81,21 @@ class IntCodeMachineT {
         }
         pc = 0;
     }
-    
+
     private void println(String s) {
-    	if (DEBUG) {
-    		System.err.println(s);
-    	}
+        if (DEBUG) {
+            System.err.println(s);
+        }
     }
 
     private void printInstruction(int nArgs) {
-    	if (DEBUG) {
-	        System.err.print(pc + ": " + prog[pc]);
-	        for (int i = 0; i < nArgs; i++) {
-	            System.err.print(" " + prog[pc + i + 1]);
-	        }
+        if (DEBUG) {
+            System.err.print(pc + ": " + prog[pc]);
+            for (int i = 0; i < nArgs; i++) {
+                System.err.print(" " + prog[pc + i + 1]);
+            }
         System.err.println();
-    	}
+        }
     }
 
     public boolean isFinished() {
@@ -238,181 +238,181 @@ class IntCodeMachineT {
 }
 
 class CoordT {
-	public int x;
-	public int y;
-	
-	public CoordT(int x, int y) {
-		this.x = x;
-		this.y = y;
-	}
-	
-	@Override
-	public int hashCode() {
-		return (x + "," + y).hashCode();
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof CoordT) {
-			CoordT c = (CoordT) obj;
-			return c.x == x && c.y == y;
-		}
-		return false;
-	}
+    public int x;
+    public int y;
+
+    public CoordT(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public int hashCode() {
+        return (x + "," + y).hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof CoordT) {
+            CoordT c = (CoordT) obj;
+            return c.x == x && c.y == y;
+        }
+        return false;
+    }
 }
 
 class RobotT {
-	public int minX;
-	public int minY;
-	public int maxX;
-	public int maxY;
-	public CoordT location;
-	public Map<CoordT, Integer> state = new HashMap<CoordT, Integer>();
-	public Deque<Integer> trace = new ArrayDeque<Integer>();
-	public RobotT(int x, int y) {
-		location = new CoordT(x, y);
-		minX = x;
-		maxX = x;
-		minY = y;
-		maxY = y;
-	}
-	
-	public CoordT getMove(int move, CoordT l) {
-		
-		switch (move) {
-		case 1:
-			return new CoordT(l.x, l.y - 1);
-			
-		case 4:
-			return new CoordT(l.x + 1, l.y);
-			
-		case 2:
-			return new CoordT(l.x, l.y + 1);
-			
-		case 3:
-			return new CoordT(l.x - 1, l.y);
-			
-		default:
-			throw new RuntimeException("Unknown coomand " + move);
-		}
-	}
-	
-	public void move(int move, int result, boolean save) {
-		
-		CoordT next = getMove(move, location);
-		maxX = Math.max(next.x, maxX);
-		maxY = Math.max(next.y, maxY);
-		minX = Math.min(next.x, minX);
-		minY = Math.min(next.y, minY);
-		
-		System.err.println(minX + "," + minY + " - " + maxX + "," + maxY);
-		
-		state.put(next, result);
-		
-		if (result != 0) {
-			location = next;
-			if (save) {
-				int rev = -1;
-				switch (move) {
-				case 1:
-					rev = 2;
-					break;
-				case 2:
-					rev = 1;
-					break;
-				case 3:
-					rev = 4;
-					break;
-				case 4:
-					rev = 3;
-					break;
-				}
-				trace.push(rev);
-			}
-			System.err.println("Robot at " + location.x +"," + location.y);
-		}
-	}
-	
-	public int getState() {
-		if (state.containsKey(location)) {
-			return state.get(location);
-		}
-		return 0;
-	}
-	
-	public int getState(int x, int y) {
-		CoordT l = new CoordT(x, y);
-		if (state.containsKey(l)) {
-			return state.get(l);
-		}
-		return -1;
-	}
-	
-	public int getStateMove(int move) {
-		CoordT next = getMove(move, location);
-		return getState(next.x, next.y);
-	}
-	
-	public void setState(int c) {
-		state.put(location, c);
-	}
-	
-	public boolean isHere(int x, int y) {
-		return location.x == x && location.y == y;
-	}
-	
-	public void draw() {
-		draw(null);
-	}
-	
-	public void draw(Set<CoordT> oxygen) {
-		for (int y = minY; y <= maxY; y++) {
-			for (int x = minX; x <= maxX; x++) {
-				if (oxygen != null) {
-					if (oxygen.contains(new CoordT(x, y))) {
-						System.err.print('@');
-						continue;
-					}
-				}
-				int s = getState(x, y);
-				if (s == 0) {
-					System.err.print('#');
-				} else if (s == -1) {
-					System.err.print('?');
-				} else if (s == 2 && isHere(x, y)) {
-					System.err.print('O');
-				} else if (s == 2 && !isHere(x, y)) {
-					System.err.print('o');
-				} else if (isHere(x, y)) {
-					System.err.print('D');
-				} else {
-					System.err.print(' ');
-				}
-			}
-			System.err.println();
-		}
-	}
-	
-	public boolean isUnknown() {
-		for (int y = minY; y <= maxY; y++) {
-			for (int x = minX; x <= maxX; x++) {
-				if (getState(x, y) == -1) {
-					return true;
-				}
-			}
-		}
-		for (int y = minY; y <= maxY; y++) {
-			if (getState(minX, y) != 0 || getState(maxX, y) != 0) {
-				return true;
-			}
-		}
-		for (int x = minX; x <= maxX; x++) {
-			if (getState(x, minY) != 0 || getState(x, maxY) != 0) {
-				return true;
-			}
-		}
-		return false;
-	}
+    public int minX;
+    public int minY;
+    public int maxX;
+    public int maxY;
+    public CoordT location;
+    public Map<CoordT, Integer> state = new HashMap<CoordT, Integer>();
+    public Deque<Integer> trace = new ArrayDeque<Integer>();
+    public RobotT(int x, int y) {
+        location = new CoordT(x, y);
+        minX = x;
+        maxX = x;
+        minY = y;
+        maxY = y;
+    }
+
+    public CoordT getMove(int move, CoordT l) {
+
+        switch (move) {
+        case 1:
+            return new CoordT(l.x, l.y - 1);
+
+        case 4:
+            return new CoordT(l.x + 1, l.y);
+
+        case 2:
+            return new CoordT(l.x, l.y + 1);
+
+        case 3:
+            return new CoordT(l.x - 1, l.y);
+
+        default:
+            throw new RuntimeException("Unknown coomand " + move);
+        }
+    }
+
+    public void move(int move, int result, boolean save) {
+
+        CoordT next = getMove(move, location);
+        maxX = Math.max(next.x, maxX);
+        maxY = Math.max(next.y, maxY);
+        minX = Math.min(next.x, minX);
+        minY = Math.min(next.y, minY);
+
+        System.err.println(minX + "," + minY + " - " + maxX + "," + maxY);
+
+        state.put(next, result);
+
+        if (result != 0) {
+            location = next;
+            if (save) {
+                int rev = -1;
+                switch (move) {
+                case 1:
+                    rev = 2;
+                    break;
+                case 2:
+                    rev = 1;
+                    break;
+                case 3:
+                    rev = 4;
+                    break;
+                case 4:
+                    rev = 3;
+                    break;
+                }
+                trace.push(rev);
+            }
+            System.err.println("Robot at " + location.x +"," + location.y);
+        }
+    }
+
+    public int getState() {
+        if (state.containsKey(location)) {
+            return state.get(location);
+        }
+        return 0;
+    }
+
+    public int getState(int x, int y) {
+        CoordT l = new CoordT(x, y);
+        if (state.containsKey(l)) {
+            return state.get(l);
+        }
+        return -1;
+    }
+
+    public int getStateMove(int move) {
+        CoordT next = getMove(move, location);
+        return getState(next.x, next.y);
+    }
+
+    public void setState(int c) {
+        state.put(location, c);
+    }
+
+    public boolean isHere(int x, int y) {
+        return location.x == x && location.y == y;
+    }
+
+    public void draw() {
+        draw(null);
+    }
+
+    public void draw(Set<CoordT> oxygen) {
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                if (oxygen != null) {
+                    if (oxygen.contains(new CoordT(x, y))) {
+                        System.err.print('@');
+                        continue;
+                    }
+                }
+                int s = getState(x, y);
+                if (s == 0) {
+                    System.err.print('#');
+                } else if (s == -1) {
+                    System.err.print('?');
+                } else if (s == 2 && isHere(x, y)) {
+                    System.err.print('O');
+                } else if (s == 2 && !isHere(x, y)) {
+                    System.err.print('o');
+                } else if (isHere(x, y)) {
+                    System.err.print('D');
+                } else {
+                    System.err.print(' ');
+                }
+            }
+            System.err.println();
+        }
+    }
+
+    public boolean isUnknown() {
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                if (getState(x, y) == -1) {
+                    return true;
+                }
+            }
+        }
+        for (int y = minY; y <= maxY; y++) {
+            if (getState(minX, y) != 0 || getState(maxX, y) != 0) {
+                return true;
+            }
+        }
+        for (int x = minX; x <= maxX; x++) {
+            if (getState(x, minY) != 0 || getState(x, maxY) != 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 public class TractorIntCode {
@@ -449,21 +449,21 @@ public class TractorIntCode {
         }
         return false;
     }
-    
+
     public static int nextMove(List<Integer> moves, RobotT r, Random rand) {
-    	Collections.shuffle(moves, rand);
-    	int next = 0;
-    	for (int move : moves) {
-    		int s = r.getStateMove(move);
-    		if (s == -1) {
-    			return move;
-    		} else if (s != 0) {
-    			next = move;
-    		}
-    	}
-    	return -1;
+        Collections.shuffle(moves, rand);
+        int next = 0;
+        for (int move : moves) {
+            int s = r.getStateMove(move);
+            if (s == -1) {
+                return move;
+            } else if (s != 0) {
+                next = move;
+            }
+        }
+        return -1;
     }
-    
+
     public static int run(long[] prog, int x, int y) {
         IntCodeMachineT m = new IntCodeMachineT(prog, 1000000);
         int[] inputs = new int[] {x, y};
@@ -473,7 +473,7 @@ public class TractorIntCode {
 
     public static void main(String[] args) throws Exception {
 
-        BufferedReader reader = new BufferedReader(new FileReader("../../tractorintcode"));
+        BufferedReader reader = new BufferedReader(new FileReader("tractorintcode"));
         String data = reader.readLine();
         reader.close();
         String[] progString = data.split(",");
@@ -481,49 +481,40 @@ public class TractorIntCode {
         for (int i = 0; i < prog.length; i++) {
             prog[i] = Long.parseLong(progString[i]);
         }
-        
-        Set<CoordT> ts = new HashSet<>();
-        Set<CoordT> ls = new HashSet<>();
-        for (int y = 0; y < 50; y++) {
-        	for (int x = 0; x < 50; x++) {
-        	    int o = run(prog, x, y);
-        		if (o == 1) {
-        			ts.add(new CoordT(x, y));
-        			System.err.print('#');
-        		} else {
-        		    System.err.print('.');
-        		}
-        	}
-        	System.err.println();
-        }
-        System.err.println(ts.size());
-        for (CoordT t : ts) {
-        	if (!ts.contains(new CoordT(t.x - 1, t.y))) {
-        	    
-        	}
-        }
-        
-        int max = 0;
+
+//        Set<CoordT> ts = new HashSet<>();
+//        for (int y = 0; y < 100; y++) {
+//            for (int x = 0; x < 100; x++) {
+//                int o = run(prog, x, y);
+//                if (o == 1) {
+//                    ts.add(new CoordT(x, y));
+//                    System.err.print('#');
+//                } else {
+//                    System.err.print('.');
+//                }
+//            }
+//            System.err.println();
+//        }
+
         boolean done = false;
         int x = 3;
         int y = 4;
-        print()
+        System.err.println(run(prog, x, y));
+        int size = 100;
         while (!done) {
-        	if (x > 100 && y > 100) {
-        	    int out = run(prog, x - 100, y + 100);
-        	    if (out == 1) {
-        	        System.err.println(x + ", " + y + ", " + ((x * 10000) + y));
-        	        done = true;
-        	        break;
-        	    }
-        	}
-        	System.err.println(x + "," + y);
-        	while (run(prog, x + 1, y) == 1) {
-        	    x++;
-        	}
-        	while (run(prog, x, y+ 1) == 0) {
-        	    y++;
-        	}
+            System.err.println((x + 1) + "," + (y + 1));
+            if (x > size) {
+                int out = run(prog, x - size + 1, y + size - 1);
+                if (out == 1) {
+                    System.err.println((x - size + 2) + ", " + (y + 1) + ", " + (((x - size + 1) * 10000) + y));
+                    done = true;
+                    break;
+                }
+            }
+            y++;
+            while (run(prog, x + 1, y) != 0) {
+                x++;
+            }
         }
     }
 }
