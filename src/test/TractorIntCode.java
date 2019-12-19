@@ -138,9 +138,9 @@ class IntCodeMachineT {
                     long strval = -1;
                     if (inputIter.hasNext()) {
                         strval = inputIter.next();
-                        System.err.println("Using " + strval + " as input");
+                        //System.err.println("Using " + strval + " as input");
                     } else {
-                        System.err.println("Out of input");
+                        //System.err.println("Out of input");
                         outOfInput = true;
                         break;
                     }
@@ -153,7 +153,7 @@ class IntCodeMachineT {
                 case 4:
                     printInstruction(1);
                     long ldr = i.getValue(prog, pc, 0, relBase);
-                    System.err.println("Output: " + ldr);
+                    //System.err.println("Output: " + ldr);
                     lastOutput = ldr;
                     outputs.add(ldr);
                     pc += 2;
@@ -226,7 +226,7 @@ class IntCodeMachineT {
                 case 99:
                     printInstruction(0);
                     finished = true;
-                    println("Finished!");
+                    //println("Finished!");
                     break;
 
                 default:
@@ -463,10 +463,17 @@ public class TractorIntCode {
     	}
     	return -1;
     }
+    
+    public static int run(long[] prog, int x, int y) {
+        IntCodeMachineT m = new IntCodeMachineT(prog, 1000000);
+        int[] inputs = new int[] {x, y};
+        List<Long> outputs = m.runUntilOutOfInputOrFinished(inputs);
+        return outputs.get(0).intValue();
+    }
 
     public static void main(String[] args) throws Exception {
 
-        BufferedReader reader = new BufferedReader(new FileReader("tractorintcode"));
+        BufferedReader reader = new BufferedReader(new FileReader("../../tractorintcode"));
         String data = reader.readLine();
         reader.close();
         String[] progString = data.split(",");
@@ -479,25 +486,44 @@ public class TractorIntCode {
         Set<CoordT> ls = new HashSet<>();
         for (int y = 0; y < 50; y++) {
         	for (int x = 0; x < 50; x++) {
-        		IntCodeMachineT m = new IntCodeMachineT(prog, 1000000);
-        		int[] inputs = new int[] {x, y};
-        		List<Long> outputs = m.runUntilOutOfInputOrFinished(inputs);
-        		if (outputs.get(0) == 1) {
+        	    int o = run(prog, x, y);
+        		if (o == 1) {
         			ts.add(new CoordT(x, y));
+        			System.err.print('#');
+        		} else {
+        		    System.err.print('.');
         		}
         	}
+        	System.err.println();
         }
         System.err.println(ts.size());
         for (CoordT t : ts) {
-        	if (!ts.contains(new Coord(t.x - 1, t.y)))
+        	if (!ts.contains(new CoordT(t.x - 1, t.y))) {
+        	    
+        	}
         }
         
         int max = 0;
         boolean done = false;
-        int x = 50;
-        int y = 50;
+        int x = 3;
+        int y = 4;
+        print()
         while (!done) {
-        	
+        	if (x > 100 && y > 100) {
+        	    int out = run(prog, x - 100, y + 100);
+        	    if (out == 1) {
+        	        System.err.println(x + ", " + y + ", " + ((x * 10000) + y));
+        	        done = true;
+        	        break;
+        	    }
+        	}
+        	System.err.println(x + "," + y);
+        	while (run(prog, x + 1, y) == 1) {
+        	    x++;
+        	}
+        	while (run(prog, x, y+ 1) == 0) {
+        	    y++;
+        	}
         }
     }
 }
