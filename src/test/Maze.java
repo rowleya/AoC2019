@@ -142,13 +142,8 @@ public class Maze {
 
     public static int getMinDistance(State state, PosM start, Set<PosM> keysFound, Map<PosM, Map<String, Integer>> memory) {
         Map<PosM, Integer> distances = new HashMap<>();
-        System.err.println("At " + start + " " + state.keys.get(start));
+        //System.err.println("At " + start + " " + state.keys.get(start));
         if (keysFound.size() == state.keys.size()) {
-            System.err.print("End: ");
-            for (PosM k : keysFound) {
-                System.err.print(state.keys.get(k));
-            }
-            System.err.println();
             return 0;
         }
         String keysToGo = "";
@@ -176,7 +171,7 @@ public class Maze {
         Deque<PosM> reverse = new ArrayDeque<>();
         // reverse.push(start);
         boolean done = false;
-        String options = "";
+        // String options = "";
         while (!done) {
             PosM next = state.next(p, visited, keysFound);
             if (next == null) {
@@ -192,7 +187,7 @@ public class Maze {
                     int d = reverse.size() + 1;
                     if (!distances.containsKey(next) || distances.get(next) > d) {
                         distances.put(next, d);
-                        options += state.keys.get(next);
+                        // options += state.keys.get(next);
                         // System.err.println("Key " + state.keys.get(next) + " at " + next + " distance " + (reverse.size() + 1));
                     }
                 }
@@ -201,7 +196,7 @@ public class Maze {
                 p = next;
             }
         }
-        System.err.println("Options: " + options);
+        // System.err.println("Options: " + options);
 
         int minDistance = Integer.MAX_VALUE;
         for (Entry<PosM, Integer> dist : distances.entrySet()) {
@@ -210,7 +205,9 @@ public class Maze {
             Set<PosM> nextKeysFound = new LinkedHashSet<>(keysFound);
             nextKeysFound.add(next);
             int nextD = getMinDistance(state, next, nextKeysFound, memory) + d;
-            System.err.println("Distance from " + start + " = " + nextD);
+            if (keysFound.isEmpty()) {
+                System.err.println("Distance from " + keysToGo + " = " + nextD);
+            }
             minDistance = Math.min(minDistance, nextD);
         }
 
