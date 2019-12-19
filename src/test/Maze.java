@@ -158,7 +158,7 @@ public class Maze {
         } else {
             Map<String, Integer> m = memory.get(start);
             if (m.containsKey(keysToGo)) {
-                // System.err.println(m.get(keysToGo));
+                System.err.println("Using " + start + ": " + keysToGo + " = " + m.get(keysToGo));
                 return m.get(keysToGo);
             }
         }
@@ -171,7 +171,7 @@ public class Maze {
         Deque<PosM> reverse = new ArrayDeque<>();
         // reverse.push(start);
         boolean done = false;
-        // String options = "";
+        String options = "";
         while (!done) {
             PosM next = state.next(p, visited, keysFound);
             if (next == null) {
@@ -187,8 +187,8 @@ public class Maze {
                     int d = reverse.size() + 1;
                     if (!distances.containsKey(next) || distances.get(next) > d) {
                         distances.put(next, d);
-                        // options += state.keys.get(next);
-                        // System.err.println("Key " + state.keys.get(next) + " at " + next + " distance " + (reverse.size() + 1));
+                        options += state.keys.get(next);
+                        //System.err.println("Key " + state.keys.get(next) + " at " + next + " distance " + (reverse.size() + 1));
                     }
                 }
                 visited.add(next);
@@ -196,7 +196,7 @@ public class Maze {
                 p = next;
             }
         }
-        // System.err.println("Options: " + options);
+        System.err.println("Options: " + options);
 
         int minDistance = Integer.MAX_VALUE;
         for (Entry<PosM, Integer> dist : distances.entrySet()) {
@@ -206,14 +206,16 @@ public class Maze {
             nextKeysFound.add(next);
             int nextD = getMinDistance(state, next, nextKeysFound, memory) + d;
             if (keysFound.isEmpty()) {
-                System.err.println("Distance from " + keysToGo + " = " + nextD);
+                System.err.println(start + ": Distance from " + keysToGo + " = " + nextD);
             }
             minDistance = Math.min(minDistance, nextD);
         }
 
         //System.err.println("New from " + start + ": " + keysToGo + " " + minDistance);
         // System.err.println("New from " + start + ": " + minDistance);
-        memory.get(start).put(keysToGo, minDistance);
+        if (keysToGo.length() < state.keys.size()) {
+            memory.get(start).put(keysToGo, minDistance);
+        }
         return minDistance;
     }
 
