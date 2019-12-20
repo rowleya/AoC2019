@@ -333,9 +333,11 @@ public class Maze {
         HashSet<PosM> sv = new HashSet<PosM>();
         sv.add(start);
         q.push(new SearchState(start, sv, 0));
-        int min = 0;
+        int min = Integer.MAX_VALUE;
+        System.err.println(state.keys.size());
         while (!q.isEmpty()) {
         	SearchState s = q.pop();
+        	System.err.println(s.node + " " + state.getChar(s.node) + " " + s.distance + " " + s.visited.size());
         	if (s.visited.size() == state.keys.size()) {
         		min = Math.min(min, s.distance);
         	} else {
@@ -343,16 +345,22 @@ public class Maze {
         		for (Entry<PosM, Integer> e : distances.entrySet()) {
         			PosM k = e.getKey();
         			int d = e.getValue();
-        			if (state.doors.containsKey(k) && !s.visited.contains(state.getKey(state.doors.get(k)))) {
-        				continue;
+        			if (state.doors.containsKey(k)) {
+        				if (!s.visited.contains(state.getKey(state.doors.get(k)))) {
+        					continue;
+        				}
+        				q.push(new SearchState(k, s.visited, s.distance + d));
         			}
         			if (state.keys.containsKey(k) && !s.visited.contains(k)) {
         				HashSet<PosM> newV = new HashSet<PosM>(s.visited);
         				newV.add(k);
+        				q.push(new SearchState(k, newV, s.distance + d));
         			}
         		}
         	}
         }
+        
+        System.err.println(min);
 
         
         //Map<PosM, Map<String, Integer>> bfDist = new HashMap<>();
