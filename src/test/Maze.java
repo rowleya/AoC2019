@@ -189,7 +189,7 @@ public class Maze {
 	}
 
     public static int getMinDistance(State state, PosM start, Set<PosM> keysFound, Map<PosM, Map<String, Integer>> memory, Map<PosM, Map<PosM, Integer>> distances, Set<PosM> visited) {
-        //System.err.println("At " + start + " " + state.keys.get(start));
+        System.err.println("At " + start + " " + state.getChar(start));
         if (keysFound.size() == state.keys.size()) {
             return 0;
         }
@@ -216,7 +216,7 @@ public class Maze {
         for (Entry<PosM, Integer> dist : dists.entrySet()) {
             PosM next = dist.getKey();
             int d = dist.getValue();
-            if (visited.contains(next)) {
+            if (keysFound.contains(next)) {
             	continue;
             }
             if (state.doors.containsKey(next) && !keysFound.contains(state.getKey(state.doors.get(next)))) {
