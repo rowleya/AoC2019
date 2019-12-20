@@ -40,6 +40,22 @@ class PosM {
     public String toString() {
         return "(" + x + ", " + y + ")";
     }
+    
+    public PosM right() {
+    	return new PosM(x + 1, y);
+    }
+    
+    public PosM left() {
+    	return new PosM(x - 1, y);
+    }
+    
+    public PosM up() {
+    	return new PosM(x, y - 1);
+    }
+    
+    public PosM down() {
+    	return new PosM(x, y + 1);
+    }
 }
 
 class State {
@@ -310,8 +326,33 @@ public class Maze {
         }
         
         Map<PosM, Map<String, Integer>> memory = new HashMap<>();
-        int minDistance = getMinDistance(state, start, new HashSet<PosM>(), memory, distsPerNode, new HashSet<PosM>());
-        System.err.println(minDistance);
+        /*int minDistance = getMinDistance(state, start, new HashSet<PosM>(), memory, distsPerNode, new HashSet<PosM>());
+        System.err.println(minDistance);*/
+        
+        Deque<SearchState> q = new ArrayDeque<>();
+        HashSet<PosM> sv = new HashSet<PosM>();
+        sv.add(start);
+        q.push(new SearchState(start, sv, 0));
+        int min = 0;
+        while (!q.isEmpty()) {
+        	SearchState s = q.pop();
+        	if (s.visited.size() == state.keys.size()) {
+        		min = Math.min(min, s.distance);
+        	} else {
+        		Map<PosM, Integer> distances = distsPerNode.get(s.node);
+        		for (Entry<PosM, Integer> e : distances.entrySet()) {
+        			PosM k = e.getKey();
+        			int d = e.getValue();
+        			if (state.doors.containsKey(k) && !s.visited.contains(state.getKey(state.doors.get(k)))) {
+        				continue;
+        			}
+        			if (state.keys.containsKey(k) && !s.visited.contains(k)) {
+        				HashSet<PosM> newV = new HashSet<PosM>(s.visited);
+        				newV.add(k);
+        			}
+        		}
+        	}
+        }
 
         
         //Map<PosM, Map<String, Integer>> bfDist = new HashMap<>();
