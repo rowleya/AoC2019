@@ -52,11 +52,11 @@ class State {
         switch (dir) {
         case 0:
             return new PosM(p.x + 1, p.y);
-        case 1:
+        case 3:
             return new PosM(p.x - 1, p.y);
         case 2:
             return new PosM(p.x, p.y + 1);
-        case 3:
+        case 1:
             return new PosM(p.x, p.y - 1);
 
         }
@@ -81,7 +81,7 @@ class State {
         if (keys.containsKey(p) && !keysFound.contains(p)) {
             return null;
         }
-        for (int i = 3; i >= 0; i--) {
+        for (int i = 0; i <= 3; i++) {
             PosM next = move(p, i);
             if (!visited.contains(next) && isReachable(next, keysFound)) {
                 return next;
@@ -92,6 +92,9 @@ class State {
 
     List<PosM> nexts(PosM p, Set<PosM> visited, Set<PosM> keysFound) {
         List<PosM> result = new ArrayList<PosM>();
+        if (keys.containsKey(p) && !keysFound.contains(p)) {
+            return result;
+        }
         for (int i = 0; i < 4; i++) {
             PosM next = move(p, i);
             if (!visited.contains(next) && isReachable(next, keysFound)) {
@@ -100,7 +103,37 @@ class State {
         }
         return result;
     }
-
+    
+    boolean isReachable(PosM p) {
+        if (map.containsKey(p)) {
+            return false;
+        }
+        return true;
+    }
+    
+    List<PosM> nexts(PosM p, Set<PosM> visited) {
+    	List<PosM> result = new ArrayList<PosM>();
+    	if (!visited.contains(p) && (keys.containsKey(p) || doors.containsKey(p))) {
+            return result;
+        }
+        for (int i = 0; i < 4; i++) {
+            PosM next = move(p, i);
+            if (!visited.contains(next) && isReachable(next)) {
+                result.add(next);
+            }
+        }
+        return result;
+    }
+    
+    public char getChar(PosM p) {
+    	if (keys.containsKey(p)) {
+    		return keys.get(p);
+    	}
+    	if (doors.containsKey(p)) {
+    		return doors.get(p);
+    	}
+    	return '@';
+    }
 }
 
 class KeyDist {
@@ -113,35 +146,49 @@ class KeyDist {
     }
 }
 
-class SearchState  implements Comparable<SearchState>{
+class SearchState {
     PosM node;
-    Set<PosM> keysVisited;
+    Set<PosM> visited;
     int distance;
-    public SearchState(PosM node, Set<PosM> keysVisited, int distance) {
+    public SearchState(PosM node, Set<PosM> visited, int distance) {
         this.node = node;
-        this.keysVisited = keysVisited;
+        this.visited = visited;
         this.distance = distance;
-    }
-
-    public String getKeys(State state) {
-        String keys = "";
-        for (PosM k : keysVisited) {
-            keys += state.keys.get(k);
-        }
-        return keys;
-    }
-
-    @Override
-    public int compareTo(SearchState o) {
-        return distance - o.distance;
     }
 
 }
 
 public class Maze {
+	
+	public static boolean addKey(State state, SearchState s, Set<PosM> keysFound, Map<PosM, Integer> distances) {
+		if (state.keys.containsKey(s.node) && !keysFound.contains(s.node)) {
+			if (!distances.containsKey(s.node) || distances.get(s.node) > s.distance) {
+				distances.put(s.node, s.distance);
+				//System.err.println("Key " + state.keys.get(s.node) + " dist " + s.distance);
+			}
+			return true;
+		} 
+		return false;
+	}
+	
+	public static void getKeys(State state, PosM start, Set<PosM> keysFound, Map<PosM, Integer> distances) {
+		Deque<SearchState> q = new ArrayDeque<SearchState>();
+		q.push(new SearchState(start, new HashSet<PosM>(), 0));
+		while (!q.isEmpty()) {
+			SearchState s = q.pop();
+			List<PosM> nexts = state.nexts(s.node, s.visited, keysFound);
+			
+			if (!addKey(state, s, keysFound, distances)) {
+				Set<PosM> nextVisit = new HashSet<>(s.visited);
+				nextVisit.add(s.node);
+				for (PosM next : nexts) {
+					q.push(new SearchState(next, nextVisit, s.distance + 1));
+				}
+			}
+		}
+	}
 
-    public static int getMinDistance(State state, PosM start, Set<PosM> keysFound, Map<PosM, Map<String, Integer>> memory) {
-        Map<PosM, Integer> distances = new HashMap<>();
+    public static int getMinDistance(State state, PosM start, Set<PosM> keysFound, Map<PosM, Map<String, Integer>> memory, Map<PosM, Map<PosM, Integer>> distances, Set<PosM> visited) {
         //System.err.println("At " + start + " " + state.keys.get(start));
         if (keysFound.size() == state.keys.size()) {
             return 0;
@@ -163,48 +210,25 @@ public class Maze {
             }
         }
 
-        Set<PosM> visited = new HashSet<PosM>();
-        visited.add(start);
-        PosM p = start;
-        //System.err.println("Starting at " + start + " with keys from " + keysFound);
-
-        Deque<PosM> reverse = new ArrayDeque<>();
-        // reverse.push(start);
-        boolean done = false;
-        String options = "";
-        while (!done) {
-            PosM next = state.next(p, visited, keysFound);
-            if (next == null) {
-                if (reverse.isEmpty()) {
-                    done = true;
-                } else {
-                    p = reverse.pop();
-                    System.err.println("Back to " + p);
-                }
-            } else {
-                System.err.println("Forward to " + next);
-                if (state.keys.containsKey(next) && !keysFound.contains(next)) {
-                    int d = reverse.size() + 1;
-                    //if (!distances.containsKey(next) || distances.get(next) > d) {
-                        distances.put(next, d);
-                        options += state.keys.get(next);
-                        System.err.println("Key " + state.keys.get(next) + " at " + next + " distance " + (reverse.size() + 1));
-                    //}
-                }
-                visited.add(next);
-                reverse.push(p);
-                p = next;
-            }
-        }
-        System.err.println("Options: " + options);
+        Map<PosM, Integer> dists = distances.get(start);
 
         int minDistance = Integer.MAX_VALUE;
-        for (Entry<PosM, Integer> dist : distances.entrySet()) {
+        for (Entry<PosM, Integer> dist : dists.entrySet()) {
             PosM next = dist.getKey();
             int d = dist.getValue();
+            if (visited.contains(next)) {
+            	continue;
+            }
+            if (state.doors.containsKey(next) && !keysFound.contains(state.getKey(state.doors.get(next)))) {
+            	continue;
+            }
             Set<PosM> nextKeysFound = new LinkedHashSet<>(keysFound);
-            nextKeysFound.add(next);
-            int nextD = getMinDistance(state, next, nextKeysFound, memory) + d;
+            if (state.keys.containsKey(next)) {
+                nextKeysFound.add(next);
+            }
+            Set<PosM> nextVisit = new HashSet<PosM>(visited);
+            nextVisit.add(next);
+            int nextD = getMinDistance(state, next, nextKeysFound, memory, distances, nextVisit) + d;
             if (keysFound.isEmpty()) {
                 System.err.println(start + ": Distance from " + keysToGo + " = " + nextD);
             }
@@ -212,47 +236,36 @@ public class Maze {
         }
 
         //System.err.println("New from " + start + ": " + keysToGo + " " + minDistance);
-        // System.err.println("New from " + start + ": " + minDistance);
+        System.err.println("New from " + start + ": " + minDistance);
         memory.get(start).put(keysToGo, minDistance);
         return minDistance;
     }
 
     public static Map<PosM, Integer> getDistances(State state, PosM start) {
         Map<PosM, Integer> distances = new HashMap<>();
-        Set<PosM> visited = new HashSet<PosM>();
-        visited.add(start);
-        PosM p = start;
-        Deque<PosM> reverse = new ArrayDeque<>();
-        // reverse.push(start);
-        boolean done = false;
-        while (!done) {
-            PosM next = state.next(p, visited, state.keys.keySet());
-            if (next == null) {
-                if (reverse.isEmpty()) {
-                    done = true;
-                } else {
-                    p = reverse.pop();
-                    //System.err.println("Back to " + p);
-                }
-            } else {
-                //System.err.println("Forward to " + next);
-                if (state.keys.containsKey(next) || state.doors.containsKey(next)) {
-                    if (!distances.containsKey(next) || distances.get(next) > reverse.size() + 1) {
-                        distances.put(next, reverse.size() + 1);
-
-                        //System.err.println("Key " + state.keys.get(next) + " at " + next + " distance " + (reverse.size() + 1));
-                    }
-                }
-                visited.add(next);
-                reverse.push(p);
-                p = next;
-            }
-        }
+        Deque<SearchState> q = new ArrayDeque<SearchState>();
+		q.push(new SearchState(start, new HashSet<PosM>(), 0));
+		while (!q.isEmpty()) {
+			SearchState s = q.pop();
+			if (s.node != start && (state.keys.containsKey(s.node) || state.doors.containsKey(s.node))) {
+				if (!distances.containsKey(s.node) || distances.get(s.node) > s.distance) {
+				    distances.put(s.node, s.distance);
+				    
+				}
+			} else {
+				Set<PosM> nextVisit = new HashSet<>(s.visited);
+				nextVisit.add(s.node);
+				List<PosM> nexts = state.nexts(s.node, nextVisit);
+				for (PosM next : nexts) {
+					q.push(new SearchState(next, nextVisit, s.distance + 1));
+				}
+			}
+		}
         return distances;
     }
 
     public static void main(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("../../maze"));
+        BufferedReader reader = new BufferedReader(new FileReader("maze4"));
         String line = null;
         int y = 0;
         State state = new State();
@@ -282,27 +295,29 @@ public class Maze {
 
         System.err.println(start);
 
-        Map<PosM, Map<String, Integer>> memory = new HashMap<>();
-        int minDistance = getMinDistance(state, start, new HashSet<PosM>(), memory);
-        System.err.println(minDistance);
-
-        /*Map<PosM, Map<PosM, Integer>> distsPerNode = new HashMap<>();
+        Map<PosM, Map<PosM, Integer>> distsPerNode = new HashMap<>();
         List<PosM> nodes = new ArrayList<>();
         nodes.add(start);
         nodes.addAll(state.keys.keySet());
         nodes.addAll(state.doors.keySet());
-        Map<PosM, Map<String, Integer>> bfDist = new HashMap<>();
-
         for (PosM key : nodes) {
-            System.err.println(key);
+            System.err.println(state.getChar(key));
             Map<PosM, Integer> dists = getDistances(state, key);
             for (Entry<PosM, Integer> entry : dists.entrySet()) {
-                System.err.println(entry.getKey() + " = " + entry.getValue());
+                System.err.println(state.getChar(entry.getKey()) + " = " + entry.getValue());
             }
             distsPerNode.put(key, dists);
-            bfDist.put(key, new HashMap<String, Integer>());
         }
-        bfDist.get(start).put("", 0);
+        
+        Map<PosM, Map<String, Integer>> memory = new HashMap<>();
+        int minDistance = getMinDistance(state, start, new HashSet<PosM>(), memory, distsPerNode, new HashSet<PosM>());
+        System.err.println(minDistance);
+
+        
+        //Map<PosM, Map<String, Integer>> bfDist = new HashMap<>();
+
+        
+        /*bfDist.get(start).put("", 0);
         PriorityQueue<SearchState> toDo = new PriorityQueue<>();
 
         toDo.add(new SearchState(start, new HashSet<PosM>(), 0));
