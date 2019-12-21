@@ -313,7 +313,7 @@ public class Maze {
     	List<SearchState> nexts = new ArrayList<SearchState>();
     	for (Entry<PosM, Integer> e : nDists.entrySet()) {
     		PosM k = e.getKey();
-    		int d = e.getValue() + start.distance;
+    		int d = e.getValue();
 			HashSet<PosM> visited = new HashSet<PosM>(start.visited);
 			visited.add(k);
 			nexts.add(new SearchState(k, visited, d));
@@ -321,9 +321,49 @@ public class Maze {
     	}
     	return nexts;
     }
+    
+    public static int minDist(State state, SearchState s, Map<PosM, Map<String, Integer>> memory, Map<PosM, Map<PosM, Integer>> distsPerNode) {
+        	String keysToGo = "";
+        	
+            for (PosM key : state.keys.keySet()) {
+                if (!s.visited.contains(key)) {
+                    keysToGo += state.keys.get(key);
+                }
+            }
+        	if (!memory.containsKey(s.node)) {
+        		memory.put(s.node, new HashMap<String, Integer>());
+        	} else {
+        		if (memory.get(s.node).containsKey(keysToGo)) {
+        		    //System.err.println("Reuse " + keysToGo);
+        			return memory.get(s.node).get(keysToGo);
+        		}
+        	}
+        	//System.err.println(s.node + " " + state.getChar(s.node) + " " + s.distance + " " + s.visited.size() + " " + keysToGo);
+        	if (s.visited.size() == state.keys.size()) {
+        	    //System.err.println(s.node + " " + state.keys.get(s.node));
+        	    return 0;
+        		//System.err.println(s.distance + " " + min);
+        	} else {
+        	    int min = 1000000;
+        		for (SearchState st : nextKeys(state, s, distsPerNode)) {
+        			int d = minDist(state, st, memory, distsPerNode) + st.distance;
+        			//System.err.println("From " + st.node + " distance " + d);
+        			if (d < min) {
+        			    min = d;
+        			}
+        			if (s.visited.size() == 0) {
+        	            System.err.println(min);
+        	        }
+        		}
+        		//System.err.println(s.node + " " + state.getChar(s.node) + " " + min);
+        	    
+        		memory.get(s.node).put(keysToGo, min);
+        		return min;
+        	}
+        }
 
     public static void main(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("maze4"));
+        BufferedReader reader = new BufferedReader(new FileReader("../../maze"));
         String line = null;
         int y = 0;
         State state = new State();
@@ -371,36 +411,9 @@ public class Maze {
         /*int minDistance = getMinDistance(state, start, new HashSet<PosM>(), memory, distsPerNode, new HashSet<PosM>());
         System.err.println(minDistance);*/
         
-        Deque<SearchState> q = new ArrayDeque<>();
         HashSet<PosM> sv = new HashSet<PosM>();
-        q.push(new SearchState(start, sv, 0));
-        int min = Integer.MAX_VALUE;
-        System.err.println(state.keys.size());
-        while (!q.isEmpty()) {
-        	SearchState s = q.pop();
-        	String keysToGo = "";
-            for (PosM key : state.keys.keySet()) {
-                if (!s.visited.contains(key)) {
-                    keysToGo += state.keys.get(key);
-                }
-            }
-        	if (!memory.containsKey(s.node)) {
-        		memory.put(s.node, new HashMap<String, Integer>());
-        	} else {
-        		if (memory.get(s.node).containsKey(keysToGo)) {
-        			
-        		}
-        	}
-        	//System.err.println(s.node + " " + state.getChar(s.node) + " " + s.distance + " " + s.visited.size());
-        	if (s.visited.size() == state.keys.size()) {
-        		min = Math.min(min, s.distance);
-        		System.err.println(s.distance + " " + min);
-        	} else {
-        		for (SearchState st : nextKeys(state, s, distsPerNode)) {
-        			q.push(st);
-        		}
-        	}
-        }
+        SearchState s = new SearchState(start, sv, 0);
+        int min = minDist(state, s, memory, distsPerNode);
         
         System.err.println(min);
 
@@ -411,7 +424,7 @@ public class Maze {
         /*bfDist.get(start).put("", 0);
         PriorityQueue<SearchState> toDo = new PriorityQueue<>();
 
-        toDo.add(new SearchState(start, new HashSet<PosM>(), 0));
+        toD*o.add(new SearchState(start, new HashSet<PosM>(), 0));
         int minDist = Integer.MAX_VALUE;
         while (!toDo.isEmpty()) {
             SearchState s = toDo.poll();
