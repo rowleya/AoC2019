@@ -275,7 +275,7 @@ public class JumpIntCode {
 
     public static void main(String[] args) throws Exception {
 
-        BufferedReader reader = new BufferedReader(new FileReader("jumpintcode"));
+        BufferedReader reader = new BufferedReader(new FileReader("../../jumpintcode"));
         String data = reader.readLine();
         reader.close();
         String[] progString = data.split(",");
@@ -286,7 +286,7 @@ public class JumpIntCode {
         
         IntCodeMachineJ m = new IntCodeMachineJ(prog, 1000000);
         printOut(m.runUntilOutOfInputOrFinished(new int[0]));
-        reader = new BufferedReader(new FileReader("jumpintcodeprog"));
+        reader = new BufferedReader(new FileReader("../../jumpintcodeprog"));
         String line = null;
         while ((line = reader.readLine()) != null) {
         	prog(m, line);
