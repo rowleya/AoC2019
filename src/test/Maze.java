@@ -279,6 +279,48 @@ public class Maze {
 		}
         return distances;
     }
+    
+    public static List<SearchState> nextKeys(State state, SearchState start, Map<PosM, Map<PosM, Integer>> dists) {
+    	Map<PosM, Integer> nDists = new HashMap<PosM, Integer>();
+    	
+    	Deque<SearchState> q = new ArrayDeque<SearchState>();
+    	HashSet<PosM> v = new HashSet<PosM>();
+    	v.add(start.node);
+    	q.push(new SearchState(start.node, v, 0));
+    	while (!q.isEmpty()) {
+    		SearchState s = q.pop();
+    		if (state.keys.containsKey(s.node) && !start.visited.contains(s.node)) {
+    			if (!nDists.containsKey(s.node) || nDists.get(s.node) > s.distance) {
+    				nDists.put(s.node, s.distance);
+    			}
+    		} else {
+    			for (Entry<PosM, Integer> e : dists.get(s.node).entrySet()) {
+    				PosM p = e.getKey();
+    				int d = e.getValue();
+    				if (state.doors.containsKey(p) && !start.visited.contains(state.getKey(state.doors.get(p)))) {
+    					continue;
+    				}
+    				if (s.visited.contains(p)) {
+    					continue;
+    				}
+    				HashSet<PosM> visited = new HashSet<PosM>(s.visited);
+    				visited.add(s.node);
+    			    q.push(new SearchState(p, visited, s.distance + d));
+    			}
+    		}
+    	}
+    	
+    	List<SearchState> nexts = new ArrayList<SearchState>();
+    	for (Entry<PosM, Integer> e : nDists.entrySet()) {
+    		PosM k = e.getKey();
+    		int d = e.getValue() + start.distance;
+			HashSet<PosM> visited = new HashSet<PosM>(start.visited);
+			visited.add(k);
+			nexts.add(new SearchState(k, visited, d));
+			//System.err.println(state.getChar(k) + " " + d);
+    	}
+    	return nexts;
+    }
 
     public static void main(String[] args) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader("maze4"));
@@ -331,31 +373,31 @@ public class Maze {
         
         Deque<SearchState> q = new ArrayDeque<>();
         HashSet<PosM> sv = new HashSet<PosM>();
-        sv.add(start);
         q.push(new SearchState(start, sv, 0));
         int min = Integer.MAX_VALUE;
         System.err.println(state.keys.size());
         while (!q.isEmpty()) {
         	SearchState s = q.pop();
-        	System.err.println(s.node + " " + state.getChar(s.node) + " " + s.distance + " " + s.visited.size());
+        	String keysToGo = "";
+            for (PosM key : state.keys.keySet()) {
+                if (!s.visited.contains(key)) {
+                    keysToGo += state.keys.get(key);
+                }
+            }
+        	if (!memory.containsKey(s.node)) {
+        		memory.put(s.node, new HashMap<String, Integer>());
+        	} else {
+        		if (memory.get(s.node).containsKey(keysToGo)) {
+        			
+        		}
+        	}
+        	//System.err.println(s.node + " " + state.getChar(s.node) + " " + s.distance + " " + s.visited.size());
         	if (s.visited.size() == state.keys.size()) {
         		min = Math.min(min, s.distance);
+        		System.err.println(s.distance + " " + min);
         	} else {
-        		Map<PosM, Integer> distances = distsPerNode.get(s.node);
-        		for (Entry<PosM, Integer> e : distances.entrySet()) {
-        			PosM k = e.getKey();
-        			int d = e.getValue();
-        			if (state.doors.containsKey(k)) {
-        				if (!s.visited.contains(state.getKey(state.doors.get(k)))) {
-        					continue;
-        				}
-        				q.push(new SearchState(k, s.visited, s.distance + d));
-        			}
-        			if (state.keys.containsKey(k) && !s.visited.contains(k)) {
-        				HashSet<PosM> newV = new HashSet<PosM>(s.visited);
-        				newV.add(k);
-        				q.push(new SearchState(k, newV, s.distance + d));
-        			}
+        		for (SearchState st : nextKeys(state, s, distsPerNode)) {
+        			q.push(st);
         		}
         	}
         }
