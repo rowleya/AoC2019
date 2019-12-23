@@ -2,6 +2,17 @@ package test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.math.BigInteger;
+
+class Coeffs {
+	BigInteger a;
+	BigInteger b;
+	
+	public Coeffs(BigInteger a, BigInteger b) {
+		this.a = a;
+		this.b = b;
+	}
+}
 
 public class Cards {
 	
@@ -13,8 +24,8 @@ public class Cards {
 		return newCards;
 	}
 	
-	public static long cardAtStack(long p, long nCards) {
-		return nCards - p - 1;
+	public static Coeffs cardAtStackCoeffs(BigInteger nCards, Coeffs i) {
+		return new Coeffs(BigInteger.valueOf(-1).multiply(i.a).mod(nCards), BigInteger.valueOf(-1).multiply(i.b).subtract(BigInteger.ONE).mod(nCards));
 	}
 	
 	public static long nextStack(long card, long nCards) {
@@ -46,6 +57,10 @@ public class Cards {
 		return (card - n) % nCards;
 	}
 	
+	public static Coeffs cardAtCut(BigInteger nCards, Coeffs i, BigInteger c) {
+		return new Coeffs(i.a, i.b.add(c).mod(nCards);
+	}
+	
 	public static int[] increment(int[] cards, int n) {
 		int[] newCards = new int[cards.length];
 		for (int i = 0; i < cards.length; i++) {
@@ -57,6 +72,11 @@ public class Cards {
 	public static long nextInc(long card, long nCards, long n) {
 		return (card * n) % nCards;
  	}
+	
+	public static Coeffs cardAtInc(BigInteger nCards, Coeffs i, BigInteger n) {
+		BigInteger inv = nCards.modInverse(n);
+		return new Coeffs(i.a.multiply(inv).mod(nCards), i.b.multiply(inv).mod(nCards));
+	}
 	
 	public static final String INC = "deal with increment ";
 	
@@ -98,6 +118,25 @@ public class Cards {
 		return card;
     }
 	
+    public static long runInv(long card, long nCards, ) throws Exception{
+    	BufferedReader reader = new BufferedReader(new FileReader("cards"));
+		String line;
+		while ((line = reader.readLine()) != null) {
+			if (line.startsWith(INC)) {
+				int n = getValue(line, INC);
+				card = nextInc(card, nCards, n);
+			} else if (line.startsWith(CUT)) {
+				int n = getValue(line, CUT);
+				card = nextCut(card, nCards, n);
+			} else if (line.startsWith(STACK)) {
+				card = nextStack(card, nCards);
+			}
+		}
+		reader.close();
+		return card;
+    }
+	
+    
 	public static void main(String[] args) throws Exception {
 	
 		long card = run(2019, 10007);
@@ -106,6 +145,8 @@ public class Cards {
 		
 		long nBigCards = 119315717514047L;
 		long nShuffles = 101741582076661L;
+		
+		
 		
 	}
 
